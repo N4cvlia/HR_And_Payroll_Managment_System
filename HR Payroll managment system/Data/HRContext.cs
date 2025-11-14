@@ -28,6 +28,25 @@ public class HRContext : DbContext
 
     override protected void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Department>().HasData(
+            new Department
+            {
+                Id = 1,
+                DepartmentName = "Unassigned",
+                Description = "Employees pending assignment"
+            }
+        );
+        modelBuilder.Entity<JobPosition>().HasData(
+                          new JobPosition
+                          {
+                              Id = 1,
+                              PositionTitle = "Employee",
+                              Description = "Employees pending Job Position assignment",
+                              DepartmentId = 1,
+                              MinSalary = 0,
+                              MaxSalary = 0
+                          });
+        
         modelBuilder.Entity<EmployeeProfile>()
             .HasOne(e => e.Department)
             .WithMany(d => d.Employees)

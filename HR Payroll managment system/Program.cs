@@ -90,8 +90,7 @@ do
     {
         if (loggedInUser.Role.RoleName == "HR")
         {
-            Console.WriteLine("[HR Menu]");
-            Console.ReadKey();
+            ShowHrMenu();
         }else if (loggedInUser.Role.RoleName == "Employee")
         {
             Console.WriteLine("[Employee Menu]");
@@ -237,4 +236,77 @@ void Login()
         Console.ResetColor();
         loggedInUser = user;
     }
+}
+
+void ShowHrMenu()
+{
+    Console.Clear();
+    bool isHrMenuRunning =  true;
+    do
+    {
+        Console.WriteLine("=== HR Admin Dashboard ===");
+        Console.WriteLine("1. Employee Management");
+        Console.WriteLine("2. Department Management");
+        Console.WriteLine("3. Job Position Management");
+        Console.WriteLine("4. Attendance & Time Tracking");
+        Console.WriteLine("5. Leave Request Management");
+        Console.WriteLine("6. Payroll Management");
+        Console.WriteLine("7. Reports & Analytics");
+        Console.WriteLine("8. System Administration");
+        Console.WriteLine("9. Back to Main Menu");
+        Console.WriteLine("Choose an Option:");
+        
+        string choice =  Console.ReadLine();
+
+        switch (choice)
+        {
+            case "9":
+                loggedInUser = new User();
+                isHrMenuRunning = false;
+                
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Successfully Logged Out!");
+                Console.ResetColor();
+                break;
+            default:
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Invalid Input!");
+                Console.ResetColor();
+                break;
+        }
+    } while (isHrMenuRunning);
+}
+void ShowEmployeeMenu()
+{
+    Console.Clear();
+    bool isEmployeeMenuRunning =  true;
+    do
+    {
+        Console.WriteLine("=== Employee Dashboard ===");
+        Console.WriteLine("9. Back to Main Menu");
+        Console.WriteLine("Choose an Option:");
+        
+        string choice =  Console.ReadLine();
+
+        switch (choice)
+        {
+            case "9":
+                loggedInUser = new User();
+                isEmployeeMenuRunning = false;
+                
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Successfully Logged Out!");
+                Console.ResetColor();
+                break;
+            default:
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Invalid Input!");
+                Console.ResetColor();
+                break;
+        }
+    } while (isEmployeeMenuRunning);
 }

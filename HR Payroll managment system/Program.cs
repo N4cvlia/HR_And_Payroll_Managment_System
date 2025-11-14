@@ -1,3 +1,185 @@
 ﻿using HR_Payroll_managment_system.Data;
+using HR_Payroll_managment_system.Helpers;
+using HR_Payroll_managment_system.Models;
+using HR_Payroll_managment_system.Validators;
 
-HRContext hr =  new HRContext();
+HRContext database =  new HRContext();
+User loggedInUser = new User();
+EmailSender  emailSender = new EmailSender();
+bool isRunning = true;
+
+Console.Clear();
+Console.ForegroundColor = ConsoleColor.Green;
+Console.WriteLine("Welcome to HR & Payroll managment system!");
+Console.ResetColor();
+
+do
+{
+    Console.WriteLine("[Menu]");
+    Console.WriteLine("1. LogIn");
+    Console.WriteLine("2. Register");
+    Console.WriteLine("3. Exit");
+
+    Console.WriteLine("Choose an Option:");
+    
+    string choice = Console.ReadLine();
+
+    switch (choice)
+    {
+        case "1":
+            Login();
+            break;
+        case "2":
+            SignUp();
+            break;
+        case "3":
+            isRunning = false;
+            break;
+        default:
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Invalid option");
+            Console.ResetColor();
+            break;
+    }
+    
+} while (isRunning);
+
+void SignUp()
+{
+    Console.Clear();
+    Console.WriteLine("[SignUp Menu]");
+    Console.Write("Enter Your Email: ");
+    string email = Console.ReadLine();
+    Console.Write("Enter Your Password: ");
+    string password = Console.ReadLine();
+
+    User user = new User()
+    {
+        Email = email,
+        Password = password
+    };
+    
+    LoginValidator loginValidator = new LoginValidator();
+    
+    var isLoginValid = loginValidator.Validate(user);
+
+    if (isLoginValid.IsValid)
+    {
+        Console.Clear();
+        bool isSuccessful = false;
+        do
+        {
+            var roles = database.Roles.ToList();
+            
+            
+            Console.WriteLine("[Choose Role]");
+            foreach (var item in roles)
+            {
+                Console.WriteLine($"{item.Id}. {item.RoleName}");
+            }
+
+            Console.WriteLine("Choose an Option:");
+            
+            var choice1 = int.Parse(Console.ReadLine());
+            var result = roles.FirstOrDefault(r => r.Id == choice1);
+
+            if (result != null)
+            {
+                Console.Clear();
+                
+                Random random = new Random();
+                int code = random.Next(1000, 9999);
+                bool isVerified = false;
+
+                EmailLog emailLog = new EmailLog()
+                {
+                    ToEmail = user.Email,
+                    Subject = "Your Verification Code - HR Payroll System",
+                    Body = $@"<div style='font-family: Arial, sans-serif; padding: 20px;'><h2>HR Payroll System - Verification Code</h2><p>Hello,</p><p>Your verification code is:</p><div style='font-size: 32px; font-weight: bold; color: #007cba; margin: 20px 0;'> {code}</div><p>Enter this code in the application to verify your email address.</p><p><strong>This code expires in 10 minutes.</strong></p><hr><p style='color: #666; font-size: 12px;'>If you didn't request this code, please ignore this email.</p></div>",
+                    IsSent = false
+                };
+                
+                emailSender.Send(emailLog);
+
+                do
+                {
+                    Console.WriteLine("[Verify Email]");
+                    Console.WriteLine("Enter Code Sent to your Email:");
+                    string codeSent = Console.ReadLine();
+
+                    if (codeSent == code.ToString())
+                    {
+                        User user1 = new User()
+                        {
+                            Email = user.Email,
+                            Password = BCrypt.Net.BCrypt.HashPassword(password),
+                            Role = result
+                        };
+                
+                        database.Users.Add(user1);
+                        database.SaveChanges();
+                
+                        Console.Clear();
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine("Successfully Signed Up!");
+                        Console.ResetColor();
+                        isSuccessful = true;
+                        isVerified = true;
+                    }
+                    else
+                    {
+                        Console.Clear();
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("Wrong Code Try again!");
+                        Console.ResetColor();
+                    }
+                } while (!isVerified);
+            }
+            else
+            {
+               Console.Clear();
+               Console.ForegroundColor = ConsoleColor.Red;
+               Console.WriteLine("Invalid Option!");
+               Console.ResetColor();
+            }
+        } while (!isSuccessful);
+    }
+    else
+    {
+        Console.Clear();
+        foreach (var e in isLoginValid.Errors)
+        {
+           Console.ForegroundColor =  ConsoleColor.Red;
+           Console.WriteLine(e);
+           Console.ResetColor();
+        }
+    }
+}
+
+void Login()
+{
+    Console.Clear();
+    Console.WriteLine("[Login Menu]");
+    Console.Write("Enter Your Email: ");
+    string email = Console.ReadLine();
+    Console.Write("Enter Your Password: ");
+    string password = Console.ReadLine();
+    
+    User user = database.Users.FirstOrDefault(u => u.Email == email);
+
+    if (user == null)
+    {
+        Console.Clear();
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("Invalid Credentials");
+        Console.ResetColor();
+    }else if (BCrypt.Net.BCrypt.Verify(password, user.Password))
+    {
+        Console.Clear();
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("Successfully Logged In!");
+        Console.ResetColor();
+        loggedInUser = user;
+    }
+}

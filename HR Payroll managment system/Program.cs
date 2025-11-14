@@ -2,6 +2,7 @@
 using HR_Payroll_managment_system.Helpers;
 using HR_Payroll_managment_system.Models;
 using HR_Payroll_managment_system.Validators;
+using Microsoft.EntityFrameworkCore;
 
 HRContext database =  new HRContext();
 User loggedInUser = new User();
@@ -15,34 +16,88 @@ Console.ResetColor();
 
 do
 {
-    Console.WriteLine("[Menu]");
-    Console.WriteLine("1. LogIn");
-    Console.WriteLine("2. Register");
-    Console.WriteLine("3. Exit");
-
-    Console.WriteLine("Choose an Option:");
-    
-    string choice = Console.ReadLine();
-
-    switch (choice)
+    if (string.IsNullOrEmpty(loggedInUser.Email))
     {
-        case "1":
-            Login();
-            break;
-        case "2":
-            SignUp();
-            break;
-        case "3":
-            isRunning = false;
-            break;
-        default:
+        Console.WriteLine("[Menu]");
+        Console.WriteLine("1. LogIn");
+        Console.WriteLine("2. Register");
+        Console.WriteLine("3. Exit");
+
+        Console.WriteLine("Choose an Option:");
+
+        string choice = Console.ReadLine();
+
+        switch (choice)
+        {
+            case "1":
+                Login();
+                break;
+            case "2":
+                SignUp();
+                break;
+            case "3":
+                isRunning = false;
+                break;
+            default:
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Invalid option");
+                Console.ResetColor();
+                break;
+        }
+    }else if (loggedInUser.EmployeeProfile == null)
+    {
+        Console.Clear();
+        Console.WriteLine("[Profile Setup]");
+        Console.WriteLine("Enter Your First Name:");
+        string firstName = Console.ReadLine();
+        Console.WriteLine("Enter Your Last Name:");
+        string lastName = Console.ReadLine();
+
+        if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName))
+        {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Invalid option");
+            Console.WriteLine("Inputs Cant be empty!");
             Console.ResetColor();
-            break;
+            return;
+        }
+        
+        var department = database.Departments.FirstOrDefault(d => d.DepartmentName == "Unassigned");
+        var jobPosition = database.JobPositions.FirstOrDefault(d => d.PositionTitle == "Employee");
+        
+        
+        EmployeeProfile employeeProfile = new EmployeeProfile()
+        {
+            UserId = loggedInUser.Id,
+            FirstName = firstName,
+            LastName = lastName,
+            DepartmentId = department.Id,
+            Department = department,
+            JobPositionId = jobPosition.Id,
+            JobPosition = jobPosition,
+        };
+        
+        loggedInUser.EmployeeProfile = employeeProfile;
+        database.SaveChanges();
+        
+        Console.Clear();
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"Welcome {employeeProfile.FirstName} to HR & Payroll managment system!");
+        Console.ResetColor();
     }
-    
+    else
+    {
+        if (loggedInUser.Role.RoleName == "HR")
+        {
+            Console.WriteLine("[HR Menu]");
+            Console.ReadKey();
+        }else if (loggedInUser.Role.RoleName == "Employee")
+        {
+            Console.WriteLine("[Employee Menu]");
+            Console.ReadKey();
+        }
+    }
 } while (isRunning);
 
 void SignUp()
@@ -166,7 +221,7 @@ void Login()
     Console.Write("Enter Your Password: ");
     string password = Console.ReadLine();
     
-    User user = database.Users.FirstOrDefault(u => u.Email == email);
+    User user = database.Users.Include(u => u.Role).Include(u => u.EmployeeProfile).FirstOrDefault(u => u.Email == email);
 
     if (user == null)
     {

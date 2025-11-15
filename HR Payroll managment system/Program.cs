@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 HRContext database =  new HRContext();
 User loggedInUser = new User();
 EmailSender  emailSender = new EmailSender();
+Logging  logger = new Logging();
 bool isRunning = true;
 
 Console.Clear();
@@ -155,6 +156,8 @@ void SignUp()
                 };
                 
                 emailSender.Send(emailLog);
+                database.EmailLogs.Add(emailLog);
+                database.SaveChanges();
 
                 do
                 {
@@ -235,6 +238,18 @@ void Login()
         Console.WriteLine("Successfully Logged In!");
         Console.ResetColor();
         loggedInUser = user;
+
+        ActivityLog activityLog = new ActivityLog()
+        {
+            UserId = user.Id,
+            User = user,
+            Action = "LogIn",
+            Description = "User Logged into their account"
+        };
+        
+        logger.LogActivity(activityLog);
+        database.ActivityLogs.Add(activityLog);
+        database.SaveChanges();
     }
 }
 
@@ -309,4 +324,32 @@ void ShowEmployeeMenu()
                 break;
         }
     } while (isEmployeeMenuRunning);
+}
+
+void EmployeeManagement()
+{
+    Console.Clear();
+    do
+    {
+      Console.WriteLine("=== Employee Management ===");
+      Console.WriteLine("1. View All Employees");
+      Console.WriteLine("2. Add New Employee");
+      Console.WriteLine("3. Edit Employee Profile");
+      Console.WriteLine("4. Assign Department/Position");
+      Console.WriteLine("5. Deactivate/Reactivate Employee");
+      Console.WriteLine("6. View Employee Details");
+      Console.WriteLine("7. Search Employees");
+      Console.WriteLine("8. Back to HR Menu");
+      Console.WriteLine("Choose an Option:");
+      
+      switch (Console.ReadLine())
+      {
+          default:
+              Console.Clear();
+              Console.ForegroundColor = ConsoleColor.Red;
+              Console.WriteLine("Invalid Input!");
+              Console.ResetColor();
+              break;
+      }
+    } while (true);
 }

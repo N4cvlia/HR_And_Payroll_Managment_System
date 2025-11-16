@@ -100,6 +100,8 @@ do
     }
 } while (isRunning);
 
+// Authentication
+#region Authentication
 void SignUp()
 {
     Console.Clear();
@@ -252,7 +254,10 @@ void Login()
         database.SaveChanges();
     }
 }
+#endregion
 
+// HR Menu
+#region HR Menu
 void ShowHrMenu()
 {
     Console.Clear();
@@ -275,6 +280,12 @@ void ShowHrMenu()
 
         switch (choice)
         {
+            case "1":
+                EmployeeManagement();
+                break;
+            case "2":
+                DepartmentManagement();
+                break;
             case "9":
                 loggedInUser = new User();
                 isHrMenuRunning = false;
@@ -293,6 +304,10 @@ void ShowHrMenu()
         }
     } while (isHrMenuRunning);
 }
+#endregion
+
+// Employee Menu
+#region Employee Menu
 void ShowEmployeeMenu()
 {
     Console.Clear();
@@ -325,9 +340,13 @@ void ShowEmployeeMenu()
         }
     } while (isEmployeeMenuRunning);
 }
+#endregion
 
+// Employee Management
+#region EmployeeManagement
 void EmployeeManagement()
 {
+    bool isRunning = true;
     Console.Clear();
     do
     {
@@ -344,6 +363,13 @@ void EmployeeManagement()
       
       switch (Console.ReadLine())
       {
+          case "1":
+              ViewAllEmployees();
+              break;
+          case "8":
+              Console.Clear();
+              isRunning = false;
+              break;
           default:
               Console.Clear();
               Console.ForegroundColor = ConsoleColor.Red;
@@ -351,5 +377,247 @@ void EmployeeManagement()
               Console.ResetColor();
               break;
       }
-    } while (true);
+    } while (isRunning);
 }
+
+void ViewAllEmployees()
+{
+    var allEmployees = database.Employees.Select(e => new {e.Id, e.FirstName, e.LastName, e.Department.DepartmentName, e.JobPosition.PositionTitle, e.User.Email}).ToList();
+    
+    Console.Clear();
+    
+    Console.WriteLine("=== View All Employees ===");
+    Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
+    Console.WriteLine("ID  NAME                       DEPT          POSITION           EMAIL");
+    Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
+    
+    foreach (var emp in allEmployees)
+    {
+        Console.WriteLine($"{emp.Id,-3} {emp.FirstName + " " + emp.LastName,-17}     {emp.DepartmentName,-9}    {emp.PositionTitle,-17} {emp.Email,-18}");
+    }
+    
+    Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
+    Console.WriteLine("Click any key to exit.");
+    Console.ReadKey();
+    
+    Console.Clear();
+}
+#endregion
+
+// Department Management
+#region DepartmentManagement
+void DepartmentManagement()
+{
+    bool isRunning = true;
+    Console.Clear();
+    do
+    {
+        Console.WriteLine("=== Department Management ===");
+        Console.WriteLine("1. View All Departments");
+        Console.WriteLine("2. Add New Department");
+        Console.WriteLine("3. Edit Department Details");
+        Console.WriteLine("4. View Department Employees");
+        Console.WriteLine("5. Department Salary Reports");
+        Console.WriteLine("6. Back to HR Menu");
+        Console.WriteLine("Choose an Option:");
+      
+        switch (Console.ReadLine())
+        {
+            case "1":
+                ViewAllDepartments();
+                break;
+            case "2":
+                AddNewDepartment();
+                break;
+            case "3":
+                EditDepartmentDetails();
+                break;
+            case "6":
+                Console.Clear();
+                isRunning = false;
+                break;
+            default:
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Invalid Input!");
+                Console.ResetColor();
+                break;
+        }
+    } while (isRunning);
+}
+
+void ViewAllDepartments()
+{
+    Console.Clear();
+    var allDepartments = database.Departments
+        .Select(d => new { d.Id, d.DepartmentName, d.Employees.Count, d.Description }).ToList();
+    Console.WriteLine("=== View All Departments ===");
+    Console.WriteLine("─".PadRight(60, '─'));
+    Console.WriteLine("ID  DEPARTMENT        EMPLOYEES    DESCRIPTION");
+    Console.WriteLine("─".PadRight(60, '─'));
+    
+    foreach (var dept in allDepartments)
+    {
+        Console.WriteLine($"{dept.Id,-3} {dept.DepartmentName,-16}      {dept.Count,-10} {dept.Description}");
+    }
+    
+    Console.WriteLine("─".PadRight(60, '─'));
+    Console.ReadKey();
+    Console.Clear();
+}
+
+void AddNewDepartment()
+{
+    Console.Clear();
+    Console.WriteLine("=== Add New Department ===");
+    Console.WriteLine("Enter Department Name:");
+    string departmentName = Console.ReadLine();
+
+    Console.WriteLine("Enter Department Description:");
+    string departmentDescription = Console.ReadLine();
+    
+    Department newDepartment = new Department()
+    {
+        DepartmentName = departmentName,
+        Description = departmentDescription,
+    };
+
+    DepartmentValidator departmentValidator = new DepartmentValidator();
+
+    var isValidDepartment = departmentValidator.Validate(newDepartment);
+
+    if (isValidDepartment.IsValid)
+    {
+        database.Departments.Add(newDepartment);
+        database.SaveChanges();
+        
+        Console.Clear();
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("Successfully added new department!");
+        Console.ResetColor();
+
+        ActivityLog activityLog = new ActivityLog()
+        {
+            UserId = loggedInUser.Id,
+            User = loggedInUser,
+            Action = "Department Creation",
+            Description = $"{newDepartment.DepartmentName} Was created"
+        };
+        logger.LogActivity(activityLog);
+        database.ActivityLogs.Add(activityLog);
+        database.SaveChanges();
+    }
+    else
+    {
+        Console.Clear();
+
+        Console.ForegroundColor = ConsoleColor.Red;
+        foreach (var e in isValidDepartment.Errors)
+        {
+            Console.WriteLine(e);
+        }
+        Console.ResetColor();
+    }
+}
+
+void EditDepartmentDetails()
+{
+    Console.Clear();
+    Console.WriteLine("=== Edit Department Details ===");
+    Console.WriteLine("Enter Department Id you want to edit:");
+    int departmentId = int.Parse(Console.ReadLine());
+    
+    var department = database.Departments.FirstOrDefault(d => d.Id == departmentId);
+
+    if (department == null)
+    {
+        Console.Clear();
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("Department Not Found");
+        Console.ResetColor();
+    }else if (department.Id == 1)
+    {
+        Console.Clear();
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("Cannot Edit Unassigned Department");
+        Console.ResetColor();
+    }
+    else
+    {
+        Console.Clear();
+        Console.WriteLine("=== Edit Department Details ===");
+        Console.WriteLine("Enter New Department Name:");
+        string departmentName = Console.ReadLine();
+
+        Console.WriteLine("Enter New Department Description:");
+        string departmentDescription = Console.ReadLine();
+    
+        Department newDepartment = new Department()
+        {
+            DepartmentName = departmentName,
+            Description = departmentDescription,
+        };
+
+        DepartmentValidator departmentValidator = new DepartmentValidator();
+
+        var isValidDepartment = departmentValidator.Validate(newDepartment);
+
+        if (isValidDepartment.IsValid)
+        {
+            department.DepartmentName = departmentName;
+            department.Description = departmentDescription;
+            database.SaveChanges();
+        
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Successfully edited the department!");
+            Console.ResetColor();
+
+            ActivityLog activityLog = new ActivityLog()
+            {
+                UserId = loggedInUser.Id,
+                User = loggedInUser,
+                Action = "Department Edited",
+                Description = $"{newDepartment.DepartmentName} Was Edited"
+            };
+            logger.LogActivity(activityLog);
+            database.ActivityLogs.Add(activityLog);
+            database.SaveChanges();
+        }
+        else
+        {
+            Console.Clear();
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            foreach (var e in isValidDepartment.Errors)
+            {
+                Console.WriteLine(e);
+            }
+            Console.ResetColor();
+        }
+    }
+}
+
+void ViewDepartmentEmployees()
+{
+    Console.Clear();
+    Console.WriteLine("=== View Department Employees ===");
+    Console.WriteLine("Enter Department Id To View Employees:");
+    int departmentId = int.Parse(Console.ReadLine());
+    
+    var department = database.Departments.Include(d => d.Employees).FirstOrDefault(d => d.Id == departmentId);
+
+    if (department == null)
+    {
+        Console.Clear();
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("Department Not Found");
+        Console.ResetColor();
+    }
+    else
+    {
+        Console.Clear();
+        
+    }
+}
+#endregion

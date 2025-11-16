@@ -9,7 +9,7 @@ public class EmployeeProfile : Base
     public string FirstName { get; set; }
     public string LastName { get; set; }
     public DateTime HireDate { get; set; }
-    public decimal BaseSalary { get; set; }
+    public decimal BaseSalary { get; set; } = 0;
     public int DepartmentId { get; set; }
     public Department Department { get; set; }
     public int JobPositionId { get; set; }

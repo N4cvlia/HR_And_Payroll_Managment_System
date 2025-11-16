@@ -432,6 +432,12 @@ void DepartmentManagement()
             case "3":
                 EditDepartmentDetails();
                 break;
+            case "4":
+                ViewDepartmentEmployees();
+                break;
+            case "5":
+                DepartmentSalaryReports();
+                break;
             case "6":
                 Console.Clear();
                 isRunning = false;
@@ -451,17 +457,27 @@ void ViewAllDepartments()
     Console.Clear();
     var allDepartments = database.Departments
         .Select(d => new { d.Id, d.DepartmentName, d.Employees.Count, d.Description }).ToList();
-    Console.WriteLine("=== View All Departments ===");
-    Console.WriteLine("─".PadRight(60, '─'));
-    Console.WriteLine("ID  DEPARTMENT        EMPLOYEES    DESCRIPTION");
-    Console.WriteLine("─".PadRight(60, '─'));
     
+    int maxDeptNameLength = allDepartments.Max(d => d.DepartmentName.Length);
+    int deptColumnWidth = Math.Max(maxDeptNameLength, 10) + 2;
+
+    int maxDescLength = allDepartments.Max(d => d.Description?.Length ?? 0);
+    int descColumnWidth = Math.Max(maxDescLength, 11) + 2;
+
+    int totalWidth = deptColumnWidth + descColumnWidth + 20;
+
+    Console.WriteLine("=== View All Departments ===");
+    Console.WriteLine("─".PadRight(totalWidth, '─'));
+    Console.WriteLine($"ID  {"DEPARTMENT".PadRight(deptColumnWidth)} EMPLOYEES  {"DESCRIPTION".PadRight(descColumnWidth)}");
+    Console.WriteLine("─".PadRight(totalWidth, '─'));
+
     foreach (var dept in allDepartments)
     {
-        Console.WriteLine($"{dept.Id,-3} {dept.DepartmentName,-16}      {dept.Count,-10} {dept.Description}");
+        Console.WriteLine($"{dept.Id,-3} {dept.DepartmentName.PadRight(deptColumnWidth)} {dept.Count,-10} {dept.Description?.PadRight(descColumnWidth)}");
     }
-    
-    Console.WriteLine("─".PadRight(60, '─'));
+
+    Console.WriteLine("─".PadRight(totalWidth, '─'));
+    Console.WriteLine("Click Any Key To Exit.");
     Console.ReadKey();
     Console.Clear();
 }
@@ -605,7 +621,12 @@ void ViewDepartmentEmployees()
     Console.WriteLine("Enter Department Id To View Employees:");
     int departmentId = int.Parse(Console.ReadLine());
     
-    var department = database.Departments.Include(d => d.Employees).FirstOrDefault(d => d.Id == departmentId);
+    var department = database.Departments
+        .Include(d => d.Employees)
+        .ThenInclude(d => d.JobPosition)
+        .Include(d => d.Employees)
+        .ThenInclude(d => d.User)
+        .FirstOrDefault(d => d.Id == departmentId);
 
     if (department == null)
     {
@@ -617,7 +638,70 @@ void ViewDepartmentEmployees()
     else
     {
         Console.Clear();
-        
+        Console.WriteLine($"DEPARTMENT: {department.DepartmentName}");
+        Console.WriteLine($"EMPLOYEES: {department.Employees.Count(e => e.IsActive)}");
+        Console.WriteLine("─".PadRight(70, '─'));
+    
+        if (!department.Employees.Any(e => e.IsActive))
+        {
+            Console.WriteLine("No employees in this department");
+            Console.WriteLine("─".PadRight(70, '─'));
+            Console.WriteLine("Click Any Key To Exit.");
+            Console.ReadKey();
+            Console.Clear();
+            return;
+        }
+
+        Console.WriteLine("ID  NAME                      POSITION           EMAIL");
+        Console.WriteLine("─".PadRight(70, '─'));
+    
+        foreach (var emp in department.Employees.Where(e => e.IsActive))
+        {
+            Console.WriteLine($"{emp.Id,-3} {emp.FirstName + " " + emp.LastName,-17}     {emp.JobPosition?.PositionTitle,-17} {emp.User.Email}");
+        }
+        Console.WriteLine("─".PadRight(70, '─'));
+        Console.WriteLine("Click Any Key To Exit.");
+        Console.ReadKey();
+        Console.Clear();
     }
 }
+
+void DepartmentSalaryReports()
+{
+    Console.Clear();
+    var report = database.Departments
+        .Select(d => new 
+        {
+            DepartmentName = d.DepartmentName,
+            EmployeeCount = d.Employees.Count(e => e.IsActive),
+            TotalSalary = d.Employees.Where(e => e.IsActive).Sum(e => (decimal?)e.BaseSalary) ?? 0,
+            AverageSalary = d.Employees.Where(e => e.IsActive).Average(e => (decimal?)e.BaseSalary) ?? 0
+        })
+        .ToList();
+    
+    int maxDeptNameLength = report.Max(d => d.DepartmentName.Length);
+    int deptColumnWidth = Math.Max(maxDeptNameLength, 10) + 2;
+
+    Console.WriteLine("=== DEPARTMENT SALARY REPORT ===");
+    Console.WriteLine("─".PadRight(deptColumnWidth + 35, '─'));
+    Console.WriteLine($"{"DEPARTMENT".PadRight(deptColumnWidth)} EMPLOYEES  AVG SALARY  TOTAL SALARY");
+    Console.WriteLine("─".PadRight(deptColumnWidth + 35, '─'));
+
+    foreach (var dept in report)
+    {
+        Console.WriteLine($"{dept.DepartmentName.PadRight(deptColumnWidth)} {dept.EmployeeCount,-10} ${dept.AverageSalary,-10:N0} ${dept.TotalSalary:N0}");
+    }
+
+    var companyTotal = report.Sum(r => r.TotalSalary);
+    var companyAvg = report.Average(r => r.AverageSalary);
+    var totalEmployees = report.Sum(r => r.EmployeeCount);
+
+    Console.WriteLine("─".PadRight(deptColumnWidth + 35, '─'));
+    Console.WriteLine($"{"TOTALS:".PadRight(deptColumnWidth)} {totalEmployees,-10} ${companyAvg,-10:N0} ${companyTotal:N0}");
+    Console.WriteLine("─".PadRight(deptColumnWidth + 35, '─'));
+    Console.WriteLine("Click Any Key To Exit.");
+    Console.ReadKey();
+    Console.Clear();
+}
 #endregion
+Console.Clear();

@@ -18,14 +18,14 @@ public class Logging : ILogging
         }
     }
 
-    public void LogActivity(ActivityLog log)
+    public void LogActivity(ActivityLog log, string email)
     {
         string logsFolder = Path.Combine(_currentDirectory, "Logs");
         string activityLogPath = Path.Combine(logsFolder, "ActivityLog.txt");
 
         using (StreamWriter sw = new StreamWriter(activityLogPath, true))
         {
-            sw.WriteLine($"[{log.TimeStamp}] | User: {log.User.Email} | Action: {log.Action} | Description: {log.Description}");
+            sw.WriteLine($"[{log.TimeStamp}] | User: {email} | Action: {log.Action} | Description: {log.Description}");
         }
     }
 }

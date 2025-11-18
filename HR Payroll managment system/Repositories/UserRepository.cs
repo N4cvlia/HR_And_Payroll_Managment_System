@@ -1,6 +1,7 @@
 using HR_Payroll_managment_system.Data;
 using HR_Payroll_managment_system.Models;
 using HR_Payroll_managment_system.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace HR_Payroll_managment_system.Repositories;
 
@@ -8,6 +9,13 @@ public class UserRepository : IRepository<User>
 {
     HRContext _db = new HRContext();
 
+    public User GetUserByEmail(string email)
+    {
+        return _db.Users
+            .Include(u => u.Role)
+            .Include(u => u.EmployeeProfile)
+            .FirstOrDefault(u => u.Email == email);
+    }
     public User GetById(int userId)
     {
         return _db.Users.FirstOrDefault(u => u.Id == userId);

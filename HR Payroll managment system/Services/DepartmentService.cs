@@ -28,6 +28,11 @@ public class DepartmentService : IDepartmentService
         return _departmentRepository.GetAll();
     }
 
+    public List<DepartmentListDto> GetAllDepartmentsWithCount()
+    {
+        return _departmentRepository.GetAllDepartmentsWIthCount();
+    }
+
     public List<DepartmentSalaryReportDto> GetAllDepartmentSalaryReports()
     {
         return _departmentRepository.GetAllWithSalaryReport();

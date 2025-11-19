@@ -36,6 +36,18 @@ public class DepartmentRepository : IRepository<Department>
         }).ToList();
     }
 
+    public List<DepartmentListDto> GetAllDepartmentsWIthCount()
+    {
+        return _db.Departments
+            .Select(d => new DepartmentListDto
+            {
+                Id = d.Id,
+                DepartmentName = d.DepartmentName,
+                EmployeeCount = d.Employees.Count,
+                Description = d.Description
+            }).ToList<DepartmentListDto>();
+    }
+
     public List<Department> GetAll()
     {
         return _db.Departments.Include(d => d.Employees).ToList();

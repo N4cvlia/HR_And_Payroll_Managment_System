@@ -19,10 +19,6 @@ JobPositionManagementMenu jobPositionManagementMenu = new JobPositionManagementM
 User loggedInUser = new User();
 bool isRunning = true;
 
-EmailSender  emailSender = new EmailSender();
-Logging  logger = new Logging();
-
-
 Console.Clear();
 Console.ForegroundColor = ConsoleColor.Green;
 Console.WriteLine("Welcome to HR & Payroll managment system!");
@@ -77,8 +73,8 @@ do
             return;
         }
         
-        var department = database.Departments.FirstOrDefault(d => d.DepartmentName == "Unassigned");
-        var jobPosition = database.JobPositions.FirstOrDefault(d => d.PositionTitle == "Employee");
+        var department = departmentService.GetAllDepartments().FirstOrDefault(d => d.DepartmentName == "Unassigned");
+        var jobPosition = jobPositionService.GetAllJobPositions().FirstOrDefault(d => d.PositionTitle == "Employee");
         
         
         EmployeeProfile employeeProfile = new EmployeeProfile()
@@ -139,7 +135,7 @@ void ShowHrMenu()
         switch (choice)
         {
             case "1":
-                EmployeeManagement();
+                
                 break;
             case "2":
                 departmentManagementMenu.MainMenu();
@@ -200,67 +196,5 @@ void ShowEmployeeMenu()
                 break;
         }
     } while (isEmployeeMenuRunning);
-}
-#endregion
-
-// Employee Management
-#region EmployeeManagement
-void EmployeeManagement()
-{
-    bool isRunning = true;
-    Console.Clear();
-    do
-    {
-      Console.WriteLine("=== Employee Management ===");
-      Console.WriteLine("1. View All Employees");
-      Console.WriteLine("2. Add New Employee");
-      Console.WriteLine("3. Edit Employee Profile");
-      Console.WriteLine("4. Assign Department/Position");
-      Console.WriteLine("5. Deactivate/Reactivate Employee");
-      Console.WriteLine("6. View Employee Details");
-      Console.WriteLine("7. Search Employees");
-      Console.WriteLine("8. Back to HR Menu");
-      Console.WriteLine("Choose an Option:");
-      
-      switch (Console.ReadLine())
-      {
-          case "1":
-              ViewAllEmployees();
-              break;
-          case "8":
-              Console.Clear();
-              isRunning = false;
-              break;
-          default:
-              Console.Clear();
-              Console.ForegroundColor = ConsoleColor.Red;
-              Console.WriteLine("Invalid Input!");
-              Console.ResetColor();
-              break;
-      }
-    } while (isRunning);
-}
-
-void ViewAllEmployees()
-{
-    var allEmployees = database.Employees.Select(e => new {e.Id, e.FirstName, e.LastName, e.Department.DepartmentName, e.JobPosition.PositionTitle, e.User.Email}).ToList();
-    
-    Console.Clear();
-    
-    Console.WriteLine("=== View All Employees ===");
-    Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
-    Console.WriteLine("ID  NAME                       DEPT          POSITION           EMAIL");
-    Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
-    
-    foreach (var emp in allEmployees)
-    {
-        Console.WriteLine($"{emp.Id,-3} {emp.FirstName + " " + emp.LastName,-17}     {emp.DepartmentName,-9}    {emp.PositionTitle,-17} {emp.Email,-18}");
-    }
-    
-    Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
-    Console.WriteLine("Click any key to exit.");
-    Console.ReadKey();
-    
-    Console.Clear();
 }
 #endregion

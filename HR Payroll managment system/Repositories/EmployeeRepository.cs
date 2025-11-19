@@ -1,4 +1,5 @@
 using HR_Payroll_managment_system.Data;
+using HR_Payroll_managment_system.DTOs;
 using HR_Payroll_managment_system.Models;
 using HR_Payroll_managment_system.Repositories.Interfaces;
 
@@ -16,6 +17,21 @@ public class EmployeeRepository : IRepository<EmployeeProfile>
     public List<EmployeeProfile> GetAll()
     {
         return _db.Employees.ToList();
+    }
+
+    public List<EmployeeListWithDetailsDto> GetAllWithDetails()
+    {
+        return _db.Employees
+            .Select(e => new EmployeeListWithDetailsDto
+            {
+                Id = e.Id,
+                FirstName = e.FirstName,
+                LastName = e.LastName,
+                DepartmentName = e.Department.DepartmentName,
+                JobPositionName = e.JobPosition.PositionTitle,
+                Email = e.User.Email
+            })
+            .ToList();
     }
 
     public EmployeeProfile Add(EmployeeProfile employeeProfile)

@@ -1,20 +1,20 @@
 ﻿using HR_Payroll_managment_system.Data;
-using HR_Payroll_managment_system.Helpers;
 using HR_Payroll_managment_system.Models;
 using HR_Payroll_managment_system.Presentation;
 using HR_Payroll_managment_system.Services;
-using HR_Payroll_managment_system.Validators;
-using Microsoft.EntityFrameworkCore;
-
+#region  Services
 HRContext database =  new HRContext();
 AuthService authService = new AuthService();
 UserService userService = new UserService();
 
 DepartmentService departmentService = new DepartmentService(userService);
-DepartmentManagementMenu departmentManagementMenu = new DepartmentManagementMenu(departmentService);
-
 JobPositionService jobPositionService = new JobPositionService(userService);
+EmployeeService employeeService = new EmployeeService(userService);
+
+DepartmentManagementMenu departmentManagementMenu = new DepartmentManagementMenu(departmentService);
 JobPositionManagementMenu jobPositionManagementMenu = new JobPositionManagementMenu(departmentService, jobPositionService);
+EmployeeManagementMenu employeeManagementMenu = new EmployeeManagementMenu(employeeService, departmentService, jobPositionService);
+#endregion
 
 User loggedInUser = new User();
 bool isRunning = true;
@@ -135,7 +135,7 @@ void ShowHrMenu()
         switch (choice)
         {
             case "1":
-                
+                employeeManagementMenu.MainMenu();
                 break;
             case "2":
                 departmentManagementMenu.MainMenu();

@@ -29,7 +29,9 @@ public class EmployeeRepository : IRepository<EmployeeProfile>
                 LastName = e.LastName,
                 DepartmentName = e.Department.DepartmentName,
                 JobPositionName = e.JobPosition.PositionTitle,
-                Email = e.User.Email
+                BaseSalary = e.BaseSalary,
+                Email = e.User.Email,
+                IsActive = e.IsActive
             })
             .ToList();
     }

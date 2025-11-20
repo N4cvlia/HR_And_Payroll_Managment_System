@@ -25,6 +25,13 @@ public class DepartmentRepository : IRepository<Department>
             .FirstOrDefault(d => d.Id == departmentId);
     }
 
+    public Department GetByIdWithJobPositions(int departmentId)
+    {
+        return _db.Departments
+            .Include(d => d.JobPositions)
+            .FirstOrDefault(d => d.Id == departmentId);
+    }
+
     public List<DepartmentSalaryReportDto> GetAllWithSalaryReport()
     {
         return _db.Departments.Select(d => new DepartmentSalaryReportDto

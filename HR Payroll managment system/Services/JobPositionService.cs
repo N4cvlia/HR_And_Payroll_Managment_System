@@ -22,6 +22,16 @@ public class JobPositionService : IJobPositionService
         _userService = userService;
     }
 
+    public JobPosition GetJobPositionById(int id)
+    {
+        return  _jobPositionRepository.GetById(id);
+    }
+
+    public JobPosition GetJobPositionByIdWithDetails(int id)
+    {
+        return _jobPositionRepository.GetByIdWithDetails(id);
+    }
+
     public List<JobPosition> GetAllJobPositions()
     {
         return _jobPositionRepository.GetAll();

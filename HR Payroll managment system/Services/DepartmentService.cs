@@ -43,6 +43,10 @@ public class DepartmentService : IDepartmentService
         return _departmentRepository.GetById(id);
     }
 
+    public Department GetDepartmentByIdWithJobPosition(int id)
+    {
+        return _departmentRepository.GetByIdWithJobPositions(id);
+    }
     public Department GetDepartmentByIdWithDetails(int id)
     {
         return  _departmentRepository.GetByIdWithDetails(id);

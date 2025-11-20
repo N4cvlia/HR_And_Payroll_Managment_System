@@ -14,6 +14,15 @@ public class JobPositionRepository : IRepository<JobPosition>
         return _db.JobPositions.FirstOrDefault(u => u.Id == jobPositionId);
     }
 
+    public JobPosition GetByIdWithDetails(int jobPositionId)
+    {
+        return _db.JobPositions
+            .Include(j => j.Employees)
+            .ThenInclude(e => e.User)
+            .Include(j => j.Department)
+            .FirstOrDefault(j => j.Id == jobPositionId);
+    }
+
     public List<JobPosition> GetAll()
     {
         return _db.JobPositions.Include(j => j.Department).ToList();

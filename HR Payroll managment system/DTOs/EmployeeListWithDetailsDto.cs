@@ -8,4 +8,6 @@ public class EmployeeListWithDetailsDto
     public string DepartmentName { get; set; }
     public string JobPositionName { get; set; }
     public string Email { get; set; }
+    public decimal BaseSalary { get; set; }
+    public bool IsActive { get; set; }
 }

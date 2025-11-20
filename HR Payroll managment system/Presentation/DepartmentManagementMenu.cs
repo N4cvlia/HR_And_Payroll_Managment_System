@@ -138,9 +138,44 @@ public class DepartmentManagementMenu : IDepartmentManagementMenu
     public void EditDetailsMenu()
     {
         Console.Clear();
+        var allDepartments = _departmentService.GetAllDepartments()
+            .Select(d => new
+            {
+                d.Id,
+                d.DepartmentName,
+                Count = d.Employees != null ? d.Employees.Count(e => e.IsActive) : 0,
+                d.Description
+            });
+    
+        int maxDeptNameLength = allDepartments.Max(d => d.DepartmentName.Length);
+        int deptColumnWidth = Math.Max(maxDeptNameLength, 10) + 2;
+
+        int maxDescLength = allDepartments.Max(d => d.Description?.Length ?? 0);
+        int descColumnWidth = Math.Max(maxDescLength, 11) + 2;
+
+        int totalWidth = deptColumnWidth + descColumnWidth + 20;
+
         Console.WriteLine("=== Edit Department Details ===");
-        Console.WriteLine("Enter Department Id you want to edit:");
-        var departmentId = int.Parse(Console.ReadLine());
+        Console.WriteLine("─".PadRight(totalWidth, '─'));
+        Console.WriteLine($"ID  {"DEPARTMENT".PadRight(deptColumnWidth)} EMPLOYEES  {"DESCRIPTION".PadRight(descColumnWidth)}");
+        Console.WriteLine("─".PadRight(totalWidth, '─'));
+
+        foreach (var dept in allDepartments)
+        {
+            Console.WriteLine($"{dept.Id,-3} {dept.DepartmentName.PadRight(deptColumnWidth)} {dept.Count,-10} {dept.Description?.PadRight(descColumnWidth)}");
+        }
+
+        Console.WriteLine("─".PadRight(totalWidth, '─'));
+        Console.WriteLine("Choose Department Id:");
+
+        if (!int.TryParse(Console.ReadLine(), out int departmentId))
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Invalid Input!");
+            Console.ResetColor();
+            return;
+        }
 
         var department = _departmentService.GetDepartmentById(departmentId);
 
@@ -197,9 +232,44 @@ public class DepartmentManagementMenu : IDepartmentManagementMenu
     public void ViewDepartmentEmployees()
     {
         Console.Clear();
+        var allDepartments = _departmentService.GetAllDepartments()
+            .Select(d => new
+            {
+                d.Id,
+                d.DepartmentName,
+                Count = d.Employees != null ? d.Employees.Count(e => e.IsActive) : 0,
+                d.Description
+            });
+    
+        int maxDeptNameLength = allDepartments.Max(d => d.DepartmentName.Length);
+        int deptColumnWidth = Math.Max(maxDeptNameLength, 10) + 2;
+
+        int maxDescLength = allDepartments.Max(d => d.Description?.Length ?? 0);
+        int descColumnWidth = Math.Max(maxDescLength, 11) + 2;
+
+        int totalWidth = deptColumnWidth + descColumnWidth + 20;
+
         Console.WriteLine("=== View Department Employees ===");
-        Console.WriteLine("Enter Department Id To View Employees:");
-        int departmentId = int.Parse(Console.ReadLine());
+        Console.WriteLine("─".PadRight(totalWidth, '─'));
+        Console.WriteLine($"ID  {"DEPARTMENT".PadRight(deptColumnWidth)} EMPLOYEES  {"DESCRIPTION".PadRight(descColumnWidth)}");
+        Console.WriteLine("─".PadRight(totalWidth, '─'));
+
+        foreach (var dept in allDepartments)
+        {
+            Console.WriteLine($"{dept.Id,-3} {dept.DepartmentName.PadRight(deptColumnWidth)} {dept.Count,-10} {dept.Description?.PadRight(descColumnWidth)}");
+        }
+
+        Console.WriteLine("─".PadRight(totalWidth, '─'));
+        Console.WriteLine("Choose Department Id:");
+
+        if (!int.TryParse(Console.ReadLine(), out int departmentId))
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Invalid Input!");
+            Console.ResetColor();
+            return;
+        }
     
         var department = _departmentService.GetDepartmentByIdWithDetails(departmentId);
 

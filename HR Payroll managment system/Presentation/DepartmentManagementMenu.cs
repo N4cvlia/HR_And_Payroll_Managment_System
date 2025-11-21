@@ -13,6 +13,8 @@ public class DepartmentManagementMenu : IDepartmentManagementMenu
         _departmentService = departmentService;
     }
     
+    // Menu Fucntions
+    #region Menu Functions
     public void MainMenu()
     {
         bool isRunning = true;
@@ -341,4 +343,5 @@ public class DepartmentManagementMenu : IDepartmentManagementMenu
         Console.ReadKey();
         Console.Clear();
     }
+    #endregion
 }

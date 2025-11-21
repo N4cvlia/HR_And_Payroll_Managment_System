@@ -67,4 +67,31 @@ public class JobPositionService : IJobPositionService
             Success = true,
         };
     }
+
+    public ValidationResult UpdateJobPosition(JobPosition jobPosition)
+    {
+        var isValidJobPosition = _jobPositionValidator.Validate(jobPosition);
+        
+        if(!isValidJobPosition.IsValid)
+            return new ValidationResult
+            {
+                Success = false,
+                Errors = isValidJobPosition.Errors.Select(e => e.ErrorMessage).ToList()
+            };
+
+        var currentUser = _userService.CurrentUser;
+
+        _jobPositionRepository.Update(jobPosition);
+        
+        ActivityLog activityLog = new ActivityLog()
+        {
+            UserId = currentUser.Id,
+            Action = "Job Position Edited",
+            Description = $"{jobPosition.PositionTitle} Was Edited"
+        };
+        
+        _logging.LogActivity(activityLog, currentUser.Email);
+        _activityLogsRepository.Add(activityLog);
+        return new ValidationResult { Success = true };
+    }
 }

@@ -6,5 +6,7 @@ public interface IDepartmentManagementMenu
     void ViewAllMenu();
     void AddMenu();
     void EditDetailsMenu();
+
+    void ViewDepartmentEmployees();
     void SalaryReportsMenu();
 }

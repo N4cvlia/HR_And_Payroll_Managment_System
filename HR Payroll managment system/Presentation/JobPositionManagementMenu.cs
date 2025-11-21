@@ -1,10 +1,11 @@
 using HR_Payroll_managment_system.Models;
+using HR_Payroll_managment_system.Presentation.Interfaces;
 using HR_Payroll_managment_system.Repositories;
 using HR_Payroll_managment_system.Services;
 
 namespace HR_Payroll_managment_system.Presentation;
 
-public class JobPositionManagementMenu
+public class JobPositionManagementMenu : IJobPositionManagementMenu
 {
     JobPositionService _jobPositionService;
     DepartmentService  _departmentService;
@@ -37,6 +38,12 @@ public class JobPositionManagementMenu
                 case "2":
                     AddMenu();
                     break;
+                case "3":
+                    EditMenu();
+                    break;
+                case "4":
+                    AssignSalary();
+                    break;
                 case "5":
                     Console.Clear();
                     isRunning = false;
@@ -51,7 +58,9 @@ public class JobPositionManagementMenu
         } while (isRunning);
     }
     
-    void ViewAllMenu()
+    // Menu Fucntions
+    #region Menu Functions
+    public void ViewAllMenu()
     {
         Console.Clear();
         var allPositions = _jobPositionService.GetAllJobPositions()
@@ -88,86 +97,357 @@ public class JobPositionManagementMenu
         Console.ReadKey();
         Console.Clear();
     }
-    
-    void AddMenu()
+
+    public void AddMenu()
     {
         var departments = _departmentService.GetAllDepartmentsWithCount();
 
-    if (departments.Count() < 2) return;
-    
-    bool isRunning2 = true;
-    do
+        if (departments.Count() < 2)
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Add More Departments First!");
+            Console.ResetColor();
+            return;
+        }
+
+        var isRunning2 = true;
+        do
+        {
+            Console.Clear();
+            var maxDeptNameLength = departments.Max(d => d.DepartmentName.Length);
+            var deptColumnWidth = Math.Max(maxDeptNameLength, 10) + 2;
+
+            var maxDescLength = departments.Max(d => d.Description?.Length ?? 0);
+            var descColumnWidth = Math.Max(maxDescLength, 11) + 2;
+
+            var totalWidth = deptColumnWidth + descColumnWidth + 20;
+
+            Console.WriteLine("=== Create New Positions ===");
+            Console.WriteLine("─".PadRight(totalWidth, '─'));
+            Console.WriteLine(
+                $"ID  {"DEPARTMENT".PadRight(deptColumnWidth)} EMPLOYEES  {"DESCRIPTION".PadRight(descColumnWidth)}");
+            Console.WriteLine("─".PadRight(totalWidth, '─'));
+
+            foreach (var dept in departments)
+                Console.WriteLine(
+                    $"{dept.Id,-3} {dept.DepartmentName.PadRight(deptColumnWidth)} {dept.EmployeeCount,-10} {dept.Description?.PadRight(descColumnWidth)}");
+
+            Console.WriteLine("─".PadRight(totalWidth, '─'));
+            Console.WriteLine("Choose a Department Id: ");
+
+            if (!int.TryParse(Console.ReadLine(), out var departmentId))
+            {
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Invalid Input!");
+                Console.ResetColor();
+                return;
+            }
+
+            var department = departments.FirstOrDefault(d => d.Id == departmentId);
+
+            if (department == null)
+            {
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("No Department Found!");
+                Console.ResetColor();
+            }
+            else if (department.DepartmentName == "Employee")
+            {
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Job Position Cannot Be Assigned To Unassigned Department!");
+                Console.ResetColor();
+            }
+            else
+            {
+                Console.Clear();
+                Console.WriteLine("=== Create New Positions ===");
+                Console.WriteLine("Enter Position Title:");
+                var positionTitle = Console.ReadLine();
+                Console.WriteLine("Enter Position Description:");
+                var positionDescription = Console.ReadLine();
+                Console.WriteLine("Enter Min Salary:");
+                var minSalary = decimal.Parse(Console.ReadLine());
+                Console.WriteLine("Enter Max Salary:");
+                var maxSalary = decimal.Parse(Console.ReadLine());
+
+                var newJobPosition = new JobPosition
+                {
+                    PositionTitle = positionTitle,
+                    Description = positionDescription,
+                    MinSalary = minSalary,
+                    MaxSalary = maxSalary,
+                    DepartmentId = departmentId
+                };
+
+                var result = _jobPositionService.AddJobPosition(newJobPosition);
+
+                if (result.Success)
+                {
+                    Console.Clear();
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("Successfully Created a New Job Position!");
+                    Console.ResetColor();
+                }
+                else
+                {
+                    Console.Clear();
+
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    foreach (var e in result.Errors) Console.WriteLine(e);
+                    Console.ResetColor();
+                }
+
+                isRunning2 = false;
+            }
+        } while (isRunning2);
+    }
+
+    public void EditMenu()
     {
         Console.Clear();
-        int maxDeptNameLength = departments.Max(d => d.DepartmentName.Length);
-        int deptColumnWidth = Math.Max(maxDeptNameLength, 10) + 2;
+        
+        var allPositions = _jobPositionService.GetAllJobPositions()
+            .Select(jp => new { 
+                jp.Id, 
+                jp.PositionTitle, 
+                Department = jp.Department.DepartmentName,
+                jp.MinSalary, 
+                jp.MaxSalary 
+            }).ToList();
+    
+        int maxTitleLength = allPositions.Max(p => p.PositionTitle.Length);
+        int titleColumnWidth = Math.Max(maxTitleLength, 8) + 2;
 
-        int maxDescLength = departments.Max(d => d.Description?.Length ?? 0);
-        int descColumnWidth = Math.Max(maxDescLength, 11) + 2;
+        int maxDeptLength = allPositions.Max(p => p.Department.Length);
+        int deptColumnWidth = Math.Max(maxDeptLength, 10) + 2;
 
-        int totalWidth = deptColumnWidth + descColumnWidth + 20;
+        int totalWidth = titleColumnWidth + deptColumnWidth + 25;
 
-        Console.WriteLine("=== Create New Positions ===");
+        Console.WriteLine("=== Edit Position Details ===");
         Console.WriteLine("─".PadRight(totalWidth, '─'));
-        Console.WriteLine(
-            $"ID  {"DEPARTMENT".PadRight(deptColumnWidth)} EMPLOYEES  {"DESCRIPTION".PadRight(descColumnWidth)}");
+        Console.WriteLine($"ID  {"POSITION".PadRight(titleColumnWidth)} {"DEPARTMENT".PadRight(deptColumnWidth)} SALARY RANGE");
         Console.WriteLine("─".PadRight(totalWidth, '─'));
 
-        foreach (var dept in departments)
+        foreach (var pos in allPositions)
         {
-            Console.WriteLine(
-                $"{dept.Id,-3} {dept.DepartmentName.PadRight(deptColumnWidth)} {dept.EmployeeCount,-10} {dept.Description?.PadRight(descColumnWidth)}");
+            string salaryRange = $"${pos.MinSalary:N0}-${pos.MaxSalary:N0}";
+            Console.WriteLine($"{pos.Id,-3} {pos.PositionTitle.PadRight(titleColumnWidth)} {pos.Department.PadRight(deptColumnWidth)} {salaryRange}");
         }
 
         Console.WriteLine("─".PadRight(totalWidth, '─'));
-        Console.WriteLine("Choose a Department Id: ");
-        int departmentId = int.Parse(Console.ReadLine());
+        Console.WriteLine("Choose Job Position Id:");
 
-        var department = departments.FirstOrDefault(d => d.Id == departmentId);
-
-        if (department == null)
+        if (!int.TryParse(Console.ReadLine(), out var jobPositionId))
         {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("Invalid Input!");
             Console.ResetColor();
+            return;
         }
-        else if (department.DepartmentName == "Employee")
+
+        var jobPosition = _jobPositionService.GetJobPositionById(jobPositionId);
+
+        if (jobPosition == null)
         {
             Console.Clear();
+
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Job Position Cannot Be Assigned To Unassigned Department!");
+            Console.WriteLine("No Job Position Found!");
+            Console.ResetColor();
+        }
+        else if (jobPositionId == 1)
+        {
+            Console.Clear();
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Cannot Edit UnAssigned Position!");
             Console.ResetColor();
         }
         else
         {
             Console.Clear();
-            Console.WriteLine("=== Create New Positions ===");
-            Console.WriteLine("Enter Position Title:");
-            string positionTitle = Console.ReadLine();
-            Console.WriteLine("Enter Position Description:");
-            string positionDescription = Console.ReadLine();
-            Console.WriteLine("Enter Min Salary:");
-            decimal minSalary = decimal.Parse(Console.ReadLine());
-            Console.WriteLine("Enter Max Salary:");
-            decimal maxSalary = decimal.Parse(Console.ReadLine());
-    
-            JobPosition newJobPosition = new JobPosition()
+
+            bool isRunning = true;
+
+            Console.WriteLine("=== Edit Position Details ===");
+            Console.WriteLine("1. Edit Job Position Title");
+            Console.WriteLine("2. Edit Job Position Description");
+            Console.WriteLine("3. Back To HR Menu");
+            Console.WriteLine("Choose An Option:");
+
+            switch (Console.ReadLine())
             {
-                PositionTitle = positionTitle,
-                Description = positionDescription,
-                MinSalary = minSalary,
-                MaxSalary = maxSalary,
-                DepartmentId = departmentId
-            };
+                case "1":
+                    Console.Clear();
+                    Console.WriteLine("=== Edit Position Details ===");
+                    Console.WriteLine("Enter New Job Position Title:");
+                    string newJobPositionTitle = Console.ReadLine();
+                    
+                    jobPosition.PositionTitle = newJobPositionTitle;
+                    
+                    var result =  _jobPositionService.UpdateJobPosition(jobPosition);
+
+                    if (result.Success)
+                    {
+                        Console.Clear();
+
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine("Successfully Edited Job Position Title!");
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        Console.Clear();
+
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        foreach (var e in result.Errors) Console.WriteLine(e);
+                        Console.ResetColor();
+                    }
+                    break;
+                case "2":
+                    Console.Clear();
+                    Console.WriteLine("=== Edit Position Details ===");
+                    Console.WriteLine("Enter New Job Position Description:");
+                    string newJobPositionDesc = Console.ReadLine();
+                    
+                    jobPosition.Description = newJobPositionDesc;
+                    
+                    var result2 =  _jobPositionService.UpdateJobPosition(jobPosition);
+
+                    if (result2.Success)
+                    {
+                        Console.Clear();
+
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine("Successfully Edited Job Position Description!");
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        Console.Clear();
+
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        foreach (var e in result2.Errors) Console.WriteLine(e);
+                        Console.ResetColor();
+                    }
+                    break;
+                case "3":
+                    Console.Clear();
+                    isRunning = false;
+                    break;
+                default:
+                    Console.Clear();
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Invalid Input!");
+                    Console.ResetColor();
+                    break;
+            }
             
-            var result = _jobPositionService.AddJobPosition(newJobPosition);
             
+        }
+    }
+
+    public void AssignSalary()
+    {
+        Console.Clear();
+
+        var allPositions = _jobPositionService.GetAllJobPositions()
+            .Select(jp => new { 
+                jp.Id, 
+                jp.PositionTitle, 
+                Department = jp.Department.DepartmentName,
+                jp.MinSalary, 
+                jp.MaxSalary 
+            }).ToList();
+    
+        int maxTitleLength = allPositions.Max(p => p.PositionTitle.Length);
+        int titleColumnWidth = Math.Max(maxTitleLength, 8) + 2;
+
+        int maxDeptLength = allPositions.Max(p => p.Department.Length);
+        int deptColumnWidth = Math.Max(maxDeptLength, 10) + 2;
+
+        int totalWidth = titleColumnWidth + deptColumnWidth + 25;
+
+        Console.WriteLine("=== Assign Salary Ranges ===");
+        Console.WriteLine("─".PadRight(totalWidth, '─'));
+        Console.WriteLine($"ID  {"POSITION".PadRight(titleColumnWidth)} {"DEPARTMENT".PadRight(deptColumnWidth)} SALARY RANGE");
+        Console.WriteLine("─".PadRight(totalWidth, '─'));
+
+        foreach (var pos in allPositions)
+        {
+            string salaryRange = $"${pos.MinSalary:N0}-${pos.MaxSalary:N0}";
+            Console.WriteLine($"{pos.Id,-3} {pos.PositionTitle.PadRight(titleColumnWidth)} {pos.Department.PadRight(deptColumnWidth)} {salaryRange}");
+        }
+
+        Console.WriteLine("─".PadRight(totalWidth, '─'));
+        Console.WriteLine("Choose Job Position Id:");
+
+        if (!int.TryParse(Console.ReadLine(), out var jobPositionId))
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Invalid Input!");
+            Console.ResetColor();
+            return;
+        }
+
+        var jobPosition = _jobPositionService.GetJobPositionById(jobPositionId);
+
+        if (jobPosition == null)
+        {
+            Console.Clear();
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("No Job Position Found!");
+            Console.ResetColor();
+        }
+        else if (jobPositionId == 1)
+        {
+            Console.Clear();
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Cannot Edit UnAssigned Position!");
+            Console.ResetColor();
+        }
+        else
+        {
+            Console.Clear();
+            Console.WriteLine("=== Assign Salary Ranges ===");
+            Console.WriteLine("Enter New Minimum Salary:");
+            if (!decimal.TryParse(Console.ReadLine(), out decimal minSalary))
+            {
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Invalid Input!");
+                Console.ResetColor();
+                return;
+            }
+
+            Console.WriteLine("Enter New Maximum Salary:");
+            if (!decimal.TryParse(Console.ReadLine(), out decimal maxSalary))
+            {
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Invalid Input!");
+                Console.ResetColor();
+                return;
+            }
+            
+            jobPosition.MinSalary = minSalary;
+            jobPosition.MaxSalary = maxSalary;
+            
+            var result =  _jobPositionService.UpdateJobPosition(jobPosition);
+
             if (result.Success)
             {
                 Console.Clear();
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Successfully Created a New Job Position!");
+                Console.WriteLine("Successfully Edited Job Position Salary Range!");
                 Console.ResetColor();
             }
             else
@@ -175,14 +455,10 @@ public class JobPositionManagementMenu
                 Console.Clear();
 
                 Console.ForegroundColor = ConsoleColor.Red;
-                foreach (var e in result.Errors)
-                {
-                    Console.WriteLine(e);
-                }
+                foreach (var e in result.Errors) Console.WriteLine(e);
                 Console.ResetColor();
             }
-            isRunning2 = false;
         }
-    }while(isRunning2);
-}
+    }
+    #endregion
 }

@@ -360,7 +360,7 @@ public class EmployeeMenu : IEmployeeMenu
                         Console.WriteLine("Press any key to continue...");
                         Console.ReadKey();
                         Console.Clear();
-                        return;
+                        break;
                     }
                     
                     Console.WriteLine("=== PAYSLIP DETAILS ===");
@@ -406,6 +406,56 @@ public class EmployeeMenu : IEmployeeMenu
                     Console.Clear();
                     break;
                 case "3":
+                    var currentUser2 = _userService.CurrentUser;
+                    var payslips2 = _payrollService.GetPayrolls();
+                    
+                    Console.Clear();
+                    Console.WriteLine("=== My Payslips ===");
+                    Console.WriteLine("Id    MONTH/YEAR    GROSS PAY    NET PAY    STATUS");
+                    Console.WriteLine("------------------------------------------------");
+    
+                    foreach (var slip in payslips2.OrderByDescending(p => p.PaymentDate))
+                    {
+                        Console.WriteLine($"${slip.Id,8:N0}   {slip.PaymentDate:MMM yyyy}    ${slip.BaseSalary,8:N0}   ${slip.NetSalary,8:N0}   {slip.IsProcessed}");
+                    }
+    
+                    if (!payslips2.Any())
+                    {
+                        Console.WriteLine("No payslips found");
+                        Console.WriteLine("--------------------------------------------");
+                        Console.WriteLine("Press any key to continue...");
+                        Console.ReadKey();
+                        Console.Clear();
+                        break;
+                    }
+                    Console.WriteLine("--------------------------------------------");
+                    Console.WriteLine("Choose A Payslip Id:");
+
+                    if (!int.TryParse(Console.ReadLine(), out int id))
+                    {
+                        Console.Clear();
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("Invalid Input!");
+                        Console.ResetColor();
+                        break;
+                    }
+
+                    var chosenPayslip = _payrollService.GetPayrollById(id);
+
+                    if (chosenPayslip == null)
+                    {
+                        Console.Clear();
+                        
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("No Payslip Found");
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        Console.Clear();
+                        
+                        _payrollService.ExportPayslipPDF(chosenPayslip);
+                    }
                     
                     break;
                 case "4":

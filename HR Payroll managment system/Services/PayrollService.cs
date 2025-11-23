@@ -1,3 +1,4 @@
+using HR_Payroll_managment_system.Helpers;
 using HR_Payroll_managment_system.Models;
 using HR_Payroll_managment_system.Repositories;
 using HR_Payroll_managment_system.Services.Interfaces;
@@ -9,6 +10,8 @@ public class PayrollService : IPayrollService
     PayrollRepository  _payrollRepository = new PayrollRepository();
 
     private UserService _userService;
+    
+    PDFHelper _pdfHelper = new PDFHelper();
 
     public PayrollService(UserService userService)
     {
@@ -23,5 +26,15 @@ public class PayrollService : IPayrollService
     public Payroll GetLatestPayroll()
     {
         return _payrollRepository.GetAll().LastOrDefault();
+    }
+
+    public Payroll GetPayrollById(int id)
+    {
+        return _payrollRepository.GetById(id);
+    }
+
+    public void ExportPayslipPDF(Payroll payroll)
+    {
+        _pdfHelper.ExportToPDF(payroll, _userService.CurrentUser);
     }
 }

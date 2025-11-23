@@ -12,12 +12,13 @@ JobPositionService jobPositionService = new JobPositionService(userService);
 EmployeeService employeeService = new EmployeeService(userService);
 AttendanceRecordService attendanceRecordService = new AttendanceRecordService(userService);
 LeaveRequestService leaveRequestService = new LeaveRequestService(userService);
+PayrollService payrollService = new PayrollService(userService);
 
 DepartmentManagementMenu departmentManagementMenu = new DepartmentManagementMenu(departmentService);
 JobPositionManagementMenu jobPositionManagementMenu = new JobPositionManagementMenu(departmentService, jobPositionService);
 EmployeeManagementMenu employeeManagementMenu = new EmployeeManagementMenu(employeeService, departmentService, jobPositionService);
 Attendance_TimeTrackingMenu attendanceTimeTrackingMenu = new Attendance_TimeTrackingMenu(employeeService, attendanceRecordService);
-EmployeeMenu employeeMenu = new EmployeeMenu(userService, employeeService, attendanceRecordService, leaveRequestService);
+EmployeeMenu employeeMenu = new EmployeeMenu(userService, employeeService, attendanceRecordService, leaveRequestService, payrollService);
 #endregion
 
 User loggedInUser = new User();

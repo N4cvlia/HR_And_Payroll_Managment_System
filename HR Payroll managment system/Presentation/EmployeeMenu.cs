@@ -10,15 +10,23 @@ public class EmployeeMenu : IEmployeeMenu
     EmployeeService _employeeService;
     AttendanceRecordService _attendanceRecordService;
     LeaveRequestService _leaveRequestService;
+    PayrollService _payrollService;
     
     UserService  _userService;
 
-    public EmployeeMenu(UserService userService, EmployeeService employeeService, AttendanceRecordService attendanceRecordService,  LeaveRequestService leaveRequestService)
+    public EmployeeMenu(
+        UserService userService,
+        EmployeeService employeeService,
+        AttendanceRecordService attendanceRecordService,
+        LeaveRequestService leaveRequestService,
+        PayrollService payrollService
+        )
     {
         _userService = userService;
         _employeeService = employeeService;
         _attendanceRecordService = attendanceRecordService;
         _leaveRequestService = leaveRequestService;
+        _payrollService = payrollService;
     }
     
     // Menu Fucntions
@@ -303,7 +311,115 @@ public class EmployeeMenu : IEmployeeMenu
 
     public void MyPayslipsMenu()
     {
+        bool isRunning = true;
         Console.Clear();
+
+        do
+        {
+            Console.WriteLine("=== My Payslips ===");
+            Console.WriteLine("1. View All Payslips");
+            Console.WriteLine("2. View Latest Payslip");
+            Console.WriteLine("3. Download Payslip");
+            Console.WriteLine("4. Back To Dashboard");
+            Console.WriteLine("Choose An Option: ");
+
+            switch (Console.ReadLine())
+            {
+                case "1":
+                    var payslips = _payrollService.GetPayrolls();
+                    
+                    Console.Clear();
+                    Console.WriteLine("=== My Payslips ===");
+                    Console.WriteLine("MONTH/YEAR    GROSS PAY    NET PAY    STATUS");
+                    Console.WriteLine("--------------------------------------------");
+    
+                    foreach (var slip in payslips.OrderByDescending(p => p.PaymentDate))
+                    {
+                        Console.WriteLine($"{slip.PaymentDate:MMM yyyy}    ${slip.BaseSalary,8:N0}   ${slip.NetSalary,8:N0}   {slip.IsProcessed}");
+                    }
+    
+                    if (!payslips.Any())
+                    {
+                        Console.WriteLine("No payslips found");
+                    }
+                    Console.WriteLine("--------------------------------------------");
+                    Console.WriteLine("Press any key to continue...");
+                    Console.ReadKey();
+                    Console.Clear();
+                    break;
+                case "2":
+                    var payslip = _payrollService.GetLatestPayroll(); 
+                    var currentUser = _userService.CurrentUser;
+                    Console.Clear();
+
+                    if (payslip == null)
+                    {
+                        Console.WriteLine("=== My Payslips ===");
+                        Console.WriteLine("No Payslips available");
+                        Console.WriteLine("--------------------------------------------");
+                        Console.WriteLine("Press any key to continue...");
+                        Console.ReadKey();
+                        Console.Clear();
+                        return;
+                    }
+                    
+                    Console.WriteLine("=== PAYSLIP DETAILS ===");
+                    Console.WriteLine($"Pay Period: {payslip.PaymentDate:MMMM yyyy}");
+                    Console.WriteLine($"Employee: {currentUser.EmployeeProfile.FirstName + " " +  currentUser.EmployeeProfile.LastName}");
+                    Console.WriteLine($"ID: {payslip.EmployeeId}");
+                    Console.WriteLine($"Department: {currentUser.EmployeeProfile.Department.DepartmentName}");
+                    Console.WriteLine($"Position: {currentUser.EmployeeProfile.JobPosition.PositionTitle}");
+                    Console.WriteLine("==========================================");
+                    
+                    Console.WriteLine("EARNINGS:");
+                    Console.WriteLine($"  Basic Salary:       ${payslip.BaseSalary,12:N2}");
+                    
+                    foreach (var bonus in payslip.Bonuses)
+                    {
+                        Console.WriteLine($"  {bonus.BonusType}:         ${bonus.Amount,12:N2}");
+                    }
+                    
+                    Console.WriteLine("  -------------------------------");
+                    
+                    Console.WriteLine("DEDUCTIONS:");
+                    
+                    foreach (var deduction in payslip.Deductions)
+                    {
+                        Console.WriteLine($"  {deduction.DeductionType}:    -${deduction.Amount,11:N2}");
+                    }
+                    
+                    Console.WriteLine("  -------------------------------");
+                    Console.WriteLine($"  TOTAL DEDUCTIONS:   -${payslip.Deductions.Sum(d => d.Amount),11:N2}");
+                    Console.WriteLine();
+    
+                    // SUMMARY
+                    Console.WriteLine("SUMMARY:");
+                    Console.WriteLine("  -------------------------------");
+                    Console.WriteLine($"  NET PAY:            ${payslip.NetSalary,12:N2}");
+                    Console.WriteLine("==========================================");
+                    Console.WriteLine($"Payment Date: {payslip.PaymentDate:MMM dd, yyyy}");
+                    Console.WriteLine($"Status: {payslip.IsProcessed}");
+
+                    Console.WriteLine();
+                    Console.WriteLine("Press any key to continue...");
+                    Console.ReadKey();
+                    Console.Clear();
+                    break;
+                case "3":
+                    
+                    break;
+                case "4":
+                    Console.Clear();
+                    isRunning = false;
+                    break;
+                default:
+                    Console.Clear();
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Invalid Input!");
+                    Console.ResetColor();
+                    break;
+            }
+        } while (isRunning);
     }
     
     #endregion

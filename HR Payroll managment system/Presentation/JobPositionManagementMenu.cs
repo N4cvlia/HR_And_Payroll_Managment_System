@@ -16,6 +16,8 @@ public class JobPositionManagementMenu : IJobPositionManagementMenu
         _departmentService = departmentService;
     }
     
+    // Menu Fucntions
+    #region Menu Functions
     public void MainMenu()
     {
         bool isRunning = true;
@@ -58,8 +60,6 @@ public class JobPositionManagementMenu : IJobPositionManagementMenu
         } while (isRunning);
     }
     
-    // Menu Fucntions
-    #region Menu Functions
     public void ViewAllMenu()
     {
         Console.Clear();

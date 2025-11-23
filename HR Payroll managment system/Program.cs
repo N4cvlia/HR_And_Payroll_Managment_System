@@ -2,18 +2,22 @@
 using HR_Payroll_managment_system.Models;
 using HR_Payroll_managment_system.Presentation;
 using HR_Payroll_managment_system.Services;
-#region  Services
+#region Services
 HRContext database =  new HRContext();
+
 AuthService authService = new AuthService();
 UserService userService = new UserService();
-
 DepartmentService departmentService = new DepartmentService(userService);
 JobPositionService jobPositionService = new JobPositionService(userService);
 EmployeeService employeeService = new EmployeeService(userService);
+AttendanceRecordService attendanceRecordService = new AttendanceRecordService(userService);
+LeaveRequestService leaveRequestService = new LeaveRequestService(userService);
 
 DepartmentManagementMenu departmentManagementMenu = new DepartmentManagementMenu(departmentService);
 JobPositionManagementMenu jobPositionManagementMenu = new JobPositionManagementMenu(departmentService, jobPositionService);
 EmployeeManagementMenu employeeManagementMenu = new EmployeeManagementMenu(employeeService, departmentService, jobPositionService);
+Attendance_TimeTrackingMenu attendanceTimeTrackingMenu = new Attendance_TimeTrackingMenu(employeeService, attendanceRecordService);
+EmployeeMenu employeeMenu = new EmployeeMenu(userService, employeeService, attendanceRecordService, leaveRequestService);
 #endregion
 
 User loggedInUser = new User();
@@ -26,7 +30,7 @@ Console.ResetColor();
 
 do
 {
-    if (string.IsNullOrEmpty(loggedInUser?.Email))
+    if (string.IsNullOrEmpty(userService.CurrentUser?.Email))
     {
         Console.WriteLine("[Menu]");
         Console.WriteLine("1. LogIn");
@@ -40,7 +44,7 @@ do
         switch (choice)
         {
             case "1":
-                loggedInUser = authService.Login();
+                userService.CurrentUser = authService.Login();
                 break;
             case "2":
                 authService.SignUp();
@@ -55,7 +59,7 @@ do
                 Console.ResetColor();
                 break;
         }
-    }else if (loggedInUser.EmployeeProfile == null)
+    }else if (userService.CurrentUser.EmployeeProfile == null)
     {
         Console.Clear();
         Console.WriteLine("[Profile Setup]");
@@ -79,7 +83,7 @@ do
         
         EmployeeProfile employeeProfile = new EmployeeProfile()
         {
-            UserId = loggedInUser.Id,
+            UserId = userService.CurrentUser.Id,
             FirstName = firstName,
             LastName = lastName,
             DepartmentId = department.Id,
@@ -88,7 +92,7 @@ do
             JobPosition = jobPosition,
         };
         
-        loggedInUser.EmployeeProfile = employeeProfile;
+        userService.CurrentUser.EmployeeProfile = employeeProfile;
         database.SaveChanges();
         
         Console.Clear();
@@ -98,15 +102,12 @@ do
     }
     else
     {
-        userService.CurrentUser = loggedInUser;
-        
-        if (loggedInUser.Role.RoleName == "HR")
+        if (userService.CurrentUser.Role.RoleName == "HR")
         {
             ShowHrMenu();
-        }else if (loggedInUser.Role.RoleName == "Employee")
+        }else if (userService.CurrentUser.Role.RoleName == "Employee")
         {
-            Console.WriteLine("[Employee Menu]");
-            Console.ReadKey();
+            employeeMenu.MainMenu();
         }
     }
 } while (isRunning);
@@ -143,6 +144,9 @@ void ShowHrMenu()
             case "3":
                 jobPositionManagementMenu.MainMenu();
                 break;
+            case "4":
+                attendanceTimeTrackingMenu.MainMenu();
+                break;
             case "9":
                 loggedInUser = new User();
                 isHrMenuRunning = false;
@@ -165,36 +169,4 @@ void ShowHrMenu()
 
 // Employee Menu
 #region Employee Menu
-void ShowEmployeeMenu()
-{
-    Console.Clear();
-    bool isEmployeeMenuRunning =  true;
-    do
-    {
-        Console.WriteLine("=== Employee Dashboard ===");
-        Console.WriteLine("9. Back to Main Menu");
-        Console.WriteLine("Choose an Option:");
-        
-        string choice =  Console.ReadLine();
-
-        switch (choice)
-        {
-            case "9":
-                loggedInUser = new User();
-                isEmployeeMenuRunning = false;
-                
-                Console.Clear();
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Successfully Logged Out!");
-                Console.ResetColor();
-                break;
-            default:
-                Console.Clear();
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Invalid Input!");
-                Console.ResetColor();
-                break;
-        }
-    } while (isEmployeeMenuRunning);
-}
 #endregion

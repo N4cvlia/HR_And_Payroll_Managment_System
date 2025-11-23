@@ -17,6 +17,8 @@ public class EmployeeManagementMenu : IEmployeeManagementMenu
         _jobPositionService = jobPositionService;
     }
     
+    // Menu Fucntions
+    #region Menu Functions
     public void MainMenu()
     {
         bool isRunning = true;
@@ -67,8 +69,6 @@ public class EmployeeManagementMenu : IEmployeeManagementMenu
         } while (isRunning);
     }
     
-    // Menu Fucntions
-    #region Menu Functions
     public void ViewAllMenu()
     {
         var allEmployees = _employeeService.GetAllEmployeesWithDetails();

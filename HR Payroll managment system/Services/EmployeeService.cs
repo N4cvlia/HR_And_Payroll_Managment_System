@@ -37,7 +37,11 @@ public class EmployeeService
     {
         return _employeeRepository.GetById(id);
     }
-    
+
+    public EmployeeProfile GetEmployeeByIdWithAttendace(int id)
+    {
+        return _employeeRepository.GetByIdWithAttendace(id);
+    }
 
     public bool AssignDepartmentAndPosition(EmployeeProfile employee)
     {

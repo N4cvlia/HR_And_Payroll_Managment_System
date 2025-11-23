@@ -2,6 +2,7 @@ using HR_Payroll_managment_system.Data;
 using HR_Payroll_managment_system.DTOs;
 using HR_Payroll_managment_system.Models;
 using HR_Payroll_managment_system.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace HR_Payroll_managment_system.Repositories;
 
@@ -12,6 +13,11 @@ public class EmployeeRepository : IRepository<EmployeeProfile>
     public EmployeeProfile GetById(int employeeId)
     {
         return _db.Employees.FirstOrDefault(u => u.Id == employeeId);
+    }
+
+    public EmployeeProfile GetByIdWithAttendace(int id)
+    {
+        return _db.Employees.Include(e => e.AttendanceRecords).FirstOrDefault(u => u.Id == id);
     }
 
     public List<EmployeeProfile> GetAll()

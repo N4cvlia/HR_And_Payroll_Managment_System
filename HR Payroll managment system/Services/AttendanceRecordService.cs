@@ -9,6 +9,8 @@ public class AttendanceRecordService : IAttendanceRecordService
     AttendanceRecordsRepository _attendanceRecordsRepository =  new AttendanceRecordsRepository();
     ActivityLogsRepository _activityLogsRepository =  new ActivityLogsRepository();
     
+    PDFHelper  _pdfHelper =  new PDFHelper();
+    
     UserService _userService;
     
     Logging _logging = new Logging();
@@ -145,6 +147,24 @@ public class AttendanceRecordService : IAttendanceRecordService
         else
         {
             return false;
+        }
+    }
+
+    public void ExportTimesheetToPDF(EmployeeProfile employee, DateTime fromDate, DateTime toDate)
+    {
+        var currentUser = _userService.CurrentUser;
+
+        if (fromDate > toDate)
+        {
+            Console.Clear();
+            
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("From Date cannot be greater than To Date");
+            Console.ResetColor();
+        }
+        else
+        {
+        _pdfHelper.ExportTimesheetToPDF(employee, currentUser, fromDate, toDate);
         }
     }
 }

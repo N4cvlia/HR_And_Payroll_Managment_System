@@ -15,6 +15,7 @@ public class LeaveRequestValidator : AbstractValidator<LeaveRequest>
             .NotEmpty().WithMessage("End Date cannot be empty")
             .GreaterThan(DateTime.Now).WithMessage("End Date cannot be in the past")
             .GreaterThan(l => l.StartDate).WithMessage("End Date cannot be Earlier Than Start Date");
+        
         RuleFor(l => l.Reason)
             .NotEmpty().WithMessage("Reason Cannot be empty");
         

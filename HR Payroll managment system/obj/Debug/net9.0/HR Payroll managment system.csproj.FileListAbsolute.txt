@@ -165,3 +165,5 @@
 /Users/apple/Desktop/HR Payroll managment system/HR Payroll managment system/obj/Debug/net9.0/HR Payroll managment system.genruntimeconfig.cache
 /Users/apple/Desktop/HR Payroll managment system/HR Payroll managment system/obj/Debug/net9.0/ref/HR Payroll managment system.dll
 /Users/apple/Desktop/HR Payroll managment system/HR Payroll managment system/obj/Debug/net9.0/HR Payroll managment system.sourcelink.json
+/Users/apple/Desktop/HR Payroll managment system/HR Payroll managment system/bin/Debug/net9.0/BouncyCastle.Cryptography.dll
+/Users/apple/Desktop/HR Payroll managment system/HR Payroll managment system/bin/Debug/net9.0/itext.bouncy-castle-adapter.dll

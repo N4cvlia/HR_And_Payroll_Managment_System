@@ -1,5 +1,6 @@
 using HR_Payroll_managment_system.Models;
 using HR_Payroll_managment_system.Repositories;
+using HR_Payroll_managment_system.Services;
 using iText.IO.Font.Constants;
 using iText.Kernel.Colors;
 using iText.Kernel.Font;
@@ -14,12 +15,12 @@ public class PDFHelper
 {
     private string _currentDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
     
-    ActivityLogsRepository _activityLogsRepository = new ActivityLogsRepository();
+    ActivityLogsService  _activityLogsService = new ActivityLogsService();
     Logging _logging = new Logging();
 
     public void ExportToPDF(Payroll payroll, User currentUser)
     {
-        string payslipsFolder = Path.Combine(_currentDirectory, "Payslips");
+        string payslipsFolder = Path.Combine(_currentDirectory,"ExportFiles", "Payslips");
         string payslipsPath = Path.Combine(payslipsFolder, $"Payslip_{payroll.PaymentDate}_{currentUser.EmployeeProfile.FirstName}_{currentUser.EmployeeProfile.LastName}.pdf");
         
         using (var writer = new PdfWriter(payslipsPath))
@@ -173,9 +174,121 @@ public class PDFHelper
             Description = $"{currentUser.Email} Has Exported Their Payslips PDF"
         };
 
-        _activityLogsRepository.Add(activityLog);
+        _activityLogsService.AddActivityLog(activityLog);
         _logging.LogActivity(activityLog, currentUser.Email);
     }
+
+    public void ExportTimesheetToPDF(
+        EmployeeProfile employeeProfile,
+        User currentUser,
+        DateTime fromDate,
+        DateTime toDate)
+    {
+        var records = employeeProfile.AttendanceRecords.ToList();
+        var folder = Path.Combine(_currentDirectory,"ExportFiles", "Timesheets");
+
+        var filePath = Path.Combine(
+            folder,
+            $"Timesheet_{employeeProfile.FirstName}_{employeeProfile.LastName}_{fromDate:yyyyMMdd}_{toDate:yyyyMMdd}.pdf"
+        );
+
+        using (var writer = new PdfWriter(filePath))
+        using (var pdf = new PdfDocument(writer))
+        using (var document = new Document(pdf))
+        {
+            var bold = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+            var normal = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+
+            // HEADER
+            document.Add(new Paragraph("TIMESHEET REPORT")
+                .SetFont(bold).SetFontSize(18)
+                .SetTextAlignment(TextAlignment.CENTER)
+                .SetFontColor(ColorConstants.BLUE));
+
+            document.Add(new Paragraph("HR Payroll Management System")
+                .SetFont(normal).SetFontSize(10)
+                .SetTextAlignment(TextAlignment.CENTER)
+                .SetFontColor(ColorConstants.DARK_GRAY));
+
+            document.Add(new Paragraph(" "));
+
+            // EMPLOYEE INFO TABLE
+            var info = new Table(new float[] { 1, 1 });
+
+            info.AddCell(CreateCell("Employee:", true));
+            info.AddCell(CreateCell($"{employeeProfile.FirstName} {employeeProfile.LastName}"));
+
+            info.AddCell(CreateCell("Employee ID:", true));
+            info.AddCell(CreateCell(employeeProfile.Id.ToString()));
+
+            info.AddCell(CreateCell("Department:", true));
+            info.AddCell(CreateCell(employeeProfile.Department.DepartmentName));
+
+            info.AddCell(CreateCell("Period:", true));
+            info.AddCell(CreateCell($"{fromDate:MMM dd} - {toDate:MMM dd, yyyy}"));
+
+            document.Add(info);
+            document.Add(new Paragraph(" "));
+
+            // MAIN TABLE
+            var table = new Table(new[] { 1.2f, 1, 1, 1, 1 });
+
+            table.AddHeaderCell(CreateHeaderCell("Date"));
+            table.AddHeaderCell(CreateHeaderCell("Day"));
+            table.AddHeaderCell(CreateHeaderCell("Check-In"));
+            table.AddHeaderCell(CreateHeaderCell("Check-Out"));
+            table.AddHeaderCell(CreateHeaderCell("Hours Worked"));
+
+            decimal totalHours = 0;
+
+            foreach (var r in records)
+            {
+                table.AddCell(CreateCell(r.WorkDate.ToString("MMM dd")));
+                table.AddCell(CreateCell(r.WorkDate.DayOfWeek.ToString()));
+                table.AddCell(CreateCell(r.CheckIn.ToString("HH:mm")));
+                table.AddCell(CreateCell(r.CheckOut?.ToString("HH:mm") ?? "-"));
+                table.AddCell(CreateCell(r.HoursWorked.ToString("0.00")));
+
+                totalHours += r.HoursWorked;
+            }
+
+            document.Add(table);
+
+            document.Add(new Paragraph(" "));
+
+            // SUMMARY
+            var summary = new Table(new float[] { 2, 1 });
+            summary.SetWidth(UnitValue.CreatePercentValue(40));
+
+            summary.AddCell(CreateCell("Total Hours Worked:", true));
+            summary.AddCell(CreateCell(totalHours.ToString("0.00"), true));
+
+            document.Add(summary);
+
+            // FOOTER
+            document.Add(new Paragraph("\nThis is a computer-generated timesheet. No signature required.")
+                .SetFont(normal).SetFontSize(8)
+                .SetTextAlignment(TextAlignment.CENTER)
+                .SetFontColor(ColorConstants.GRAY));
+        }
+        
+        Console.Clear();
+        
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"Timesheet exported to: {filePath}");
+        Console.ResetColor();
+
+        ActivityLog activityLog = new ActivityLog()
+        {
+            UserId = employeeProfile.UserId,
+            Action = "Exported Timesheet",
+            Description = $"{currentUser.Email} Has Exported {employeeProfile.User.Email} TimeSheet PDF"
+        };
+
+        _activityLogsService.AddActivityLog(activityLog);
+        _logging.LogActivity(activityLog, currentUser.Email);
+    }
+
      
     // Helper method to create table cells
     private Cell CreateCell(string text, bool isBold = false, Color backgroundColor = null)

@@ -2,6 +2,7 @@
 using HR_Payroll_managment_system.Models;
 using HR_Payroll_managment_system.Presentation;
 using HR_Payroll_managment_system.Services;
+
 #region Services
 HRContext database =  new HRContext();
 
@@ -18,6 +19,7 @@ DepartmentManagementMenu departmentManagementMenu = new DepartmentManagementMenu
 JobPositionManagementMenu jobPositionManagementMenu = new JobPositionManagementMenu(departmentService, jobPositionService);
 EmployeeManagementMenu employeeManagementMenu = new EmployeeManagementMenu(employeeService, departmentService, jobPositionService);
 Attendance_TimeTrackingMenu attendanceTimeTrackingMenu = new Attendance_TimeTrackingMenu(employeeService, attendanceRecordService);
+LeaveRequestManagementMenu leaveRequestManagementMenu = new LeaveRequestManagementMenu(leaveRequestService);
 EmployeeMenu employeeMenu = new EmployeeMenu(userService, employeeService, attendanceRecordService, leaveRequestService, payrollService);
 #endregion
 
@@ -148,6 +150,9 @@ void ShowHrMenu()
             case "4":
                 attendanceTimeTrackingMenu.MainMenu();
                 break;
+            case "5":
+                leaveRequestManagementMenu.MainMenu();
+                break;
             case "9":
                 loggedInUser = new User();
                 isHrMenuRunning = false;
@@ -166,8 +171,4 @@ void ShowHrMenu()
         }
     } while (isHrMenuRunning);
 }
-#endregion
-
-// Employee Menu
-#region Employee Menu
 #endregion

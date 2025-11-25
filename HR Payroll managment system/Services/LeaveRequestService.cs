@@ -52,4 +52,9 @@ public class LeaveRequestService : ILeaveRequestService
             Success = true
         };
     }
+
+    public List<LeaveRequest> GetOnlyPending()
+    {
+        return _leaveRequestRepository.GetOnlyPending();
+    }
 }

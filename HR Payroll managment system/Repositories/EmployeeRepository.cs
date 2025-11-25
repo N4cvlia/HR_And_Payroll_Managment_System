@@ -15,6 +15,15 @@ public class EmployeeRepository : IRepository<EmployeeProfile>
         return _db.Employees.FirstOrDefault(u => u.Id == employeeId);
     }
 
+    public EmployeeProfile GetByIdWithDetails(int id)
+    {
+        return _db.Employees
+            .Include(e => e.Department)
+            .Include(e => e.AttendanceRecords)
+            .Include(e => e.User)
+            .FirstOrDefault(u => u.Id == id);
+    }
+
     public EmployeeProfile GetByIdWithAttendace(int id)
     {
         return _db.Employees.Include(e => e.AttendanceRecords).FirstOrDefault(u => u.Id == id);

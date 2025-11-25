@@ -1,6 +1,7 @@
 using HR_Payroll_managment_system.Data;
 using HR_Payroll_managment_system.Models;
 using HR_Payroll_managment_system.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace HR_Payroll_managment_system.Repositories;
 
@@ -12,6 +13,11 @@ public class LeaveRequestRepository : IRepository<LeaveRequest>
     public LeaveRequest GetById(int leaveRequestId)
     {
         return _db.LeaveRequests.FirstOrDefault(l => l.Id == leaveRequestId);
+    }
+
+    public List<LeaveRequest> GetOnlyPending()
+    {
+        return _db.LeaveRequests.Include(l => l.Employee).Where(l => l.Status == "Pending").ToList();
     }
 
     public List<LeaveRequest> GetAll()

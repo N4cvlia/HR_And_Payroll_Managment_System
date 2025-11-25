@@ -38,6 +38,11 @@ public class EmployeeService
         return _employeeRepository.GetById(id);
     }
 
+    public EmployeeProfile GetEmployeeByIdWithDetails(int id)
+    {
+        return _employeeRepository.GetByIdWithDetails(id);
+    }
+
     public EmployeeProfile GetEmployeeByIdWithAttendace(int id)
     {
         return _employeeRepository.GetByIdWithAttendace(id);

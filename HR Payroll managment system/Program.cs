@@ -20,6 +20,7 @@ JobPositionManagementMenu jobPositionManagementMenu = new JobPositionManagementM
 EmployeeManagementMenu employeeManagementMenu = new EmployeeManagementMenu(employeeService, departmentService, jobPositionService);
 Attendance_TimeTrackingMenu attendanceTimeTrackingMenu = new Attendance_TimeTrackingMenu(employeeService, attendanceRecordService);
 LeaveRequestManagementMenu leaveRequestManagementMenu = new LeaveRequestManagementMenu(leaveRequestService);
+PayrollManagementMenu payrollManagementMenu = new PayrollManagementMenu();
 EmployeeMenu employeeMenu = new EmployeeMenu(userService, employeeService, attendanceRecordService, leaveRequestService, payrollService);
 #endregion
 

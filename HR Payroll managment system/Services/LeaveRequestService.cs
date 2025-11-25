@@ -9,7 +9,7 @@ namespace HR_Payroll_managment_system.Services;
 public class LeaveRequestService : ILeaveRequestService
 {
     LeaveRequestRepository _leaveRequestRepository = new LeaveRequestRepository();
-    ActivityLogsRepository _activityLogsRepository = new ActivityLogsRepository();
+    ActivityLogsService _activityLogsService = new ActivityLogsService();
     
     UserService _userService;
     
@@ -45,7 +45,7 @@ public class LeaveRequestService : ILeaveRequestService
         };
         
         _logging.LogActivity(activityLog, currentUser.Email);
-        _activityLogsRepository.Add(activityLog);
+        _activityLogsService.AddActivityLog(activityLog);
 
         return new ValidationResult
         {
@@ -53,8 +53,29 @@ public class LeaveRequestService : ILeaveRequestService
         };
     }
 
+    public List<LeaveRequest> GetAllRequests()
+    {
+        return _leaveRequestRepository.GetAll();
+    }
     public List<LeaveRequest> GetOnlyPending()
     {
         return _leaveRequestRepository.GetOnlyPending();
+    }
+
+    public void UpdateLeaveRequest(LeaveRequest leaveRequest)
+    {
+        var currentUser = _userService.CurrentUser;
+        
+        _leaveRequestRepository.Update(leaveRequest);
+
+        ActivityLog activityLog = new ActivityLog()
+        {
+            UserId = currentUser.Id,
+            Action = "Leave Request Updated",
+            Description = $"{currentUser.Email} Has Updated Leave Request"
+        };
+        
+        _logging.LogActivity(activityLog, currentUser.Email);
+        _activityLogsService.AddActivityLog(activityLog);
     }
 }

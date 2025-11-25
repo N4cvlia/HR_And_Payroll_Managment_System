@@ -22,7 +22,9 @@ public class LeaveRequestRepository : IRepository<LeaveRequest>
 
     public List<LeaveRequest> GetAll()
     {
-        return _db.LeaveRequests.ToList();
+        return _db.LeaveRequests
+            .Include(l => l.Employee)
+            .ToList();
     }
 
     public LeaveRequest Add(LeaveRequest leaveRequest)

@@ -46,7 +46,7 @@ public class Attendance_TimeTrackingMenu : IAttendance_TimeTrackingMenu
                     GenerateTimesheetMenu();
                     break;
                 case "4":
-                    
+                    ViewAttendanceReports();
                     break;
                 case "5":
                     Console.Clear();
@@ -340,6 +340,106 @@ public class Attendance_TimeTrackingMenu : IAttendance_TimeTrackingMenu
             
             _attendanceRecordService.ExportTimesheetToPDF(employee, startDate, endDate);
         }
+    }
+
+    public void ViewAttendanceReports()
+    {
+        bool isRunning = true;
+        Console.Clear();
+
+        do
+        {
+            Console.WriteLine("=== View Attendance Reports ===");
+            Console.WriteLine("1. Daily Attendance Summary");
+            Console.WriteLine("2. Monthly Attendance Summary");
+            Console.WriteLine("3. Back To HR Menu");
+            Console.WriteLine("Choose An Option:");
+
+            switch (Console.ReadLine())
+            {
+                case "1":
+                    var summary = _attendanceRecordService.GetDailyReport();
+                    var totalPresent = summary.Sum(a => a.Present);
+                    var totalAbsent = summary.Sum(a => a.Absent);
+
+                    Console.Clear();
+                    Console.WriteLine("=== Daily Attendance Summary ===");
+                    Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
+                    Console.WriteLine("DEPARTMENT           PRESENT  ABSENT");
+                    Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
+                    
+                    int maxDeptLength = summary.Max(d => d.DepartmentName.Length);
+                    int deptColumnWidth = Math.Max(maxDeptLength, 10) + 2;
+
+                    foreach (var dept in summary)
+                    {
+                        Console.WriteLine($"{dept.DepartmentName.PadRight(deptColumnWidth)} {dept.Present,-8} {dept.Absent,-7}");
+                    }
+
+                    Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
+                    Console.WriteLine($"{"TOTAL".PadRight(deptColumnWidth)} {totalPresent,-8} {totalAbsent,-7}");
+                    Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
+                    Console.WriteLine("Press any key to continue...");
+                    Console.ReadKey();
+                    Console.Clear();
+                    break;
+                case "2":
+                    Console.Clear();
+                    Console.WriteLine("=== Monthly Attendance Summary ===");
+                    Console.Write("Enter year (YYYY): ");
+                    string chosenYear = Console.ReadLine();
+                    Console.Write("Enter month (1-12): ");
+                    string chosenMonth = Console.ReadLine();
+
+                    if (!int.TryParse(chosenYear, out var year) ||
+                        !int.TryParse(chosenMonth, out var month) ||
+                        year < 2000 || month > 12 || month < 1)
+                    {
+                        Console.Clear();
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("Invalid Input!");
+                        Console.ResetColor();
+                        return;
+                    }
+    
+                    var summary2 = _attendanceRecordService.GetMonthlyReport(year, month);
+                    var totalPresent2 = summary2.Sum(a => a.Present);
+                    var totalAbsent2 = summary2.Sum(a => a.Absent);
+
+                    Console.Clear();
+                    Console.WriteLine($"=== Monthly Attendance Summary - {new DateTime(year, month, 1):MMMM yyyy} ===");
+                    Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
+                    Console.WriteLine("DEPARTMENT           PRESENT  ABSENT");
+                    Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
+
+                    int maxDeptLength2 = summary2.Max(d => d.DepartmentName.Length);
+                    int deptColumnWidth2 = Math.Max(maxDeptLength2, 10) + 2;
+
+                    foreach (var dept in summary2)
+                    {
+                        Console.WriteLine($"{dept.DepartmentName.PadRight(deptColumnWidth2)} {dept.Present,-8} {dept.Absent,-7}");
+                    }
+
+                    Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
+                    Console.WriteLine($"{"TOTAL".PadRight(deptColumnWidth2)} {totalPresent2,-8} {totalAbsent2,-7}");
+                    Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
+                    Console.WriteLine("Press any key to continue...");
+                    Console.ReadKey();
+                    Console.Clear();
+                    break;
+                case "3":
+                    Console.Clear();
+                    isRunning = false;
+                    break;
+                default:
+                    Console.Clear();
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Invalid Input!");
+                    Console.ResetColor();
+                    break;
+            }
+            
+        } while (isRunning);
     }
     
     #endregion

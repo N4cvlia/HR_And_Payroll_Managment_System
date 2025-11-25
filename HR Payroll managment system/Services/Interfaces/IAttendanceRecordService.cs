@@ -10,5 +10,5 @@ public interface IAttendanceRecordService
     bool CheckOut();
     bool CheckInAsHr(int id);
     bool CheckOutAsHR(int id);
-    
+    void ExportTimesheetToPDF(EmployeeProfile employee, DateTime fromDate, DateTime toDate);
 }

@@ -1,3 +1,4 @@
+using HR_Payroll_managment_system.DTOs;
 using HR_Payroll_managment_system.Helpers;
 using HR_Payroll_managment_system.Models;
 using HR_Payroll_managment_system.Repositories;
@@ -8,6 +9,7 @@ public class AttendanceRecordService : IAttendanceRecordService
 {
     AttendanceRecordsRepository _attendanceRecordsRepository =  new AttendanceRecordsRepository();
     ActivityLogsRepository _activityLogsRepository =  new ActivityLogsRepository();
+    DepartmentRepository _departmentRepository =  new DepartmentRepository();
     
     PDFHelper  _pdfHelper =  new PDFHelper();
     
@@ -166,5 +168,64 @@ public class AttendanceRecordService : IAttendanceRecordService
         {
         _pdfHelper.ExportTimesheetToPDF(employee, currentUser, fromDate, toDate);
         }
+    }
+
+    public List<AttendanceReportSummaryDto> GetDailyReport()
+    {
+        var departments = _departmentRepository.GetAllDepartmentsWithEmployeeAndAttendance();
+
+        List<AttendanceReportSummaryDto> result = [];
+        foreach (var dep in departments)
+        {
+            int present = 0;
+            int totalEmployees = dep.Employees.Count;
+
+            foreach (var emp in dep.Employees)
+            {
+                bool isPresent = emp.AttendanceRecords.Any(at => at.WorkDate == DateTime.Today);
+                if (isPresent)
+                {
+                    present++;
+                }
+            }
+            int absent = totalEmployees - present;
+            
+            result.Add(new AttendanceReportSummaryDto{ Absent = absent, Present = present , DepartmentName = dep.DepartmentName});
+        }
+        return result;
+    }
+    public List<AttendanceReportSummaryDto> GetMonthlyReport(int year, int month)
+    {
+        var departments = _departmentRepository.GetAllDepartmentsWithEmployeeAndAttendance();
+    
+        var startDate = new DateTime(year, month, 1);
+        var endDate = startDate.AddMonths(1).AddDays(-1);
+
+        List<AttendanceReportSummaryDto> result = [];
+        foreach (var dep in departments)
+        {
+            int presentEmployees = 0;
+
+            foreach (var emp in dep.Employees)
+            {
+                bool attendedThisMonth = emp.AttendanceRecords
+                    .Any(at => at.WorkDate >= startDate && at.WorkDate <= endDate);
+                
+                if (attendedThisMonth)
+                {
+                    presentEmployees++;
+                }
+            }
+        
+            int absentEmployees = dep.Employees.Count - presentEmployees;
+        
+            result.Add(new AttendanceReportSummaryDto 
+            { 
+                Absent = absentEmployees, 
+                Present = presentEmployees, 
+                DepartmentName = dep.DepartmentName 
+            });
+        }
+        return result;
     }
 }

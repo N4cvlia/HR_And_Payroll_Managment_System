@@ -55,6 +55,14 @@ public class DepartmentRepository : IRepository<Department>
             }).ToList<DepartmentListDto>();
     }
 
+    public List<Department> GetAllDepartmentsWithEmployeeAndAttendance()
+    {
+        return _db.Departments
+                .Include(d => d.Employees)
+                .ThenInclude(d => d.AttendanceRecords)
+                .ToList();
+    }
+
     public List<Department> GetAll()
     {
         return _db.Departments.Include(d => d.Employees).ToList();

@@ -14,13 +14,15 @@ EmployeeService employeeService = new EmployeeService(userService);
 AttendanceRecordService attendanceRecordService = new AttendanceRecordService(userService);
 LeaveRequestService leaveRequestService = new LeaveRequestService(userService);
 PayrollService payrollService = new PayrollService(userService);
+BonusService bonusService = new BonusService(userService);
+DeductionService deductionService = new DeductionService(userService);
 
 DepartmentManagementMenu departmentManagementMenu = new DepartmentManagementMenu(departmentService);
 JobPositionManagementMenu jobPositionManagementMenu = new JobPositionManagementMenu(departmentService, jobPositionService);
 EmployeeManagementMenu employeeManagementMenu = new EmployeeManagementMenu(employeeService, departmentService, jobPositionService);
 Attendance_TimeTrackingMenu attendanceTimeTrackingMenu = new Attendance_TimeTrackingMenu(employeeService, attendanceRecordService);
 LeaveRequestManagementMenu leaveRequestManagementMenu = new LeaveRequestManagementMenu(leaveRequestService);
-PayrollManagementMenu payrollManagementMenu = new PayrollManagementMenu();
+PayrollManagementMenu payrollManagementMenu = new PayrollManagementMenu(employeeService, bonusService, deductionService);
 EmployeeMenu employeeMenu = new EmployeeMenu(userService, employeeService, attendanceRecordService, leaveRequestService, payrollService);
 #endregion
 
@@ -153,6 +155,9 @@ void ShowHrMenu()
                 break;
             case "5":
                 leaveRequestManagementMenu.MainMenu();
+                break;
+            case "6":
+                payrollManagementMenu.MainMenu();
                 break;
             case "9":
                 loggedInUser = new User();

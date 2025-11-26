@@ -109,7 +109,14 @@ public class EmployeeManagementMenu : IEmployeeManagementMenu
     
         Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
         Console.WriteLine("Enter an employee id:");
-        int employeeId = int.Parse(Console.ReadLine());
+        if (!int.TryParse(Console.ReadLine(), out int employeeId))
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Invalid Input!");
+            Console.ResetColor();
+            return;
+        }
         
         var employee = _employeeService.GetEmployeeById(employeeId);
 

@@ -37,15 +37,15 @@ public class HRContext : DbContext
             }
         );
         modelBuilder.Entity<JobPosition>().HasData(
-                          new JobPosition
-                          {
-                              Id = 1,
-                              PositionTitle = "Employee",
-                              Description = "Employees pending Job Position assignment",
-                              DepartmentId = 1,
-                              MinSalary = 0,
-                              MaxSalary = 0
-                          });
+            new JobPosition
+            {
+                Id = 1,
+                PositionTitle = "Employee",
+                Description = "Employees pending Job Position assignment",
+                DepartmentId = 1,
+                MinSalary = 0,
+                MaxSalary = 0
+            });
         
         modelBuilder.Entity<EmployeeProfile>()
             .HasOne(e => e.Department)

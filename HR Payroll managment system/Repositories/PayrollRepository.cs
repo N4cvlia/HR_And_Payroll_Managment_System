@@ -25,6 +25,12 @@ public class PayrollRepository : IRepository<Payroll>
         return payroll;
     }
 
+    public void AddRange(List<Payroll> payrolls)
+    {
+        _db.Payrolls.AddRange(payrolls);
+        _db.SaveChanges();
+    }
+
     public Payroll Update(Payroll payroll)
     {
         _db.Payrolls.Update(payroll);

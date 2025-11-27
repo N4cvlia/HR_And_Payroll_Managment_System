@@ -58,6 +58,19 @@ public class EmployeeRepository : IRepository<EmployeeProfile>
             .ToList();
     }
 
+    public List<EmployeeProfile> GetAllEmployeesWithDetails()
+    {
+        return _db.Employees
+            .Include(e => e.Department)
+            .Include(e => e.JobPosition)
+            .Include(e => e.Payrolls)
+            .ThenInclude(p => p.Bonuses)
+            .Include(e => e.Payrolls)
+            .ThenInclude(p => p.Deductions)
+            .Where(e => e.IsActive)
+            .ToList();
+    }
+
     public EmployeeProfile Add(EmployeeProfile employeeProfile)
     {
         _db.Employees.Add(employeeProfile);

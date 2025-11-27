@@ -177,6 +177,164 @@ public class PDFHelper
         _activityLogsService.AddActivityLog(activityLog);
         _logging.LogActivity(activityLog, currentUser.Email);
     }
+    
+    public void ExportToPDFMonthly(Payroll payroll, User currentUser)
+{
+    string payslipsFolder = Path.Combine(_currentDirectory,"ExportFiles", "Payslips");
+    
+    // Create directory if it doesn't exist
+    if (!Directory.Exists(payslipsFolder))
+        Directory.CreateDirectory(payslipsFolder);
+        
+    string payslipsPath = Path.Combine(payslipsFolder, 
+        $"Payslip_{payroll.PaymentDate:yyyyMMdd}_{payroll.Employee.FirstName}_{payroll.Employee.LastName}.pdf");
+    
+    using (var writer = new PdfWriter(payslipsPath))
+    using (var pdf = new PdfDocument(writer))
+    using (var document = new Document(pdf))
+    {
+        var boldFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+        var normalFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+    
+        // HEADER SECTION
+        var header = new Paragraph("PAYSLIP")
+            .SetFont(boldFont)
+            .SetFontSize(18)
+            .SetTextAlignment(TextAlignment.CENTER)
+            .SetFontColor(ColorConstants.BLUE);
+        document.Add(header);
+    
+        document.Add(new Paragraph(" "));
+    
+        // COMPANY INFO
+        var companyInfo = new Paragraph("HR Payroll Management System")
+            .SetFont(normalFont)
+            .SetFontSize(10)
+            .SetTextAlignment(TextAlignment.CENTER)
+            .SetFontColor(ColorConstants.DARK_GRAY);
+        document.Add(companyInfo); 
+        
+        document.Add(new Paragraph(" "));
+    
+        // EMPLOYEE & PAYMENT INFO TABLE
+        float[] columnWidths = { 1, 1 };
+        Table infoTable = new Table(columnWidths);
+    
+        infoTable.AddCell(CreateCell("Employee:", true));
+        infoTable.AddCell(CreateCell($"{payroll.Employee.FirstName} {payroll.Employee.LastName}", false));
+    
+        infoTable.AddCell(CreateCell("Employee ID:", true));
+        infoTable.AddCell(CreateCell(payroll.EmployeeId.ToString(), false));
+    
+        infoTable.AddCell(CreateCell("Department:", true));
+        infoTable.AddCell(CreateCell(payroll.Employee.Department.DepartmentName, false));
+    
+        infoTable.AddCell(CreateCell("Position:", true));
+        infoTable.AddCell(CreateCell(payroll.Employee.JobPosition.PositionTitle, false));
+        
+        infoTable.AddCell(CreateCell("Pay Period:", true));
+        infoTable.AddCell(CreateCell($"{payroll.PayPeriodStartDate:MMM dd} - {payroll.PayPeriodEndDate:MMM dd, yyyy}", false));
+    
+        infoTable.AddCell(CreateCell("Payment Date:", true));
+        infoTable.AddCell(CreateCell(payroll.PaymentDate.ToString("MMM dd, yyyy"), false));
+    
+        infoTable.AddCell(CreateCell("Status:", true));
+        infoTable.AddCell(CreateCell(payroll.IsProcessed ? "PAID" : "PENDING", false));
+    
+        document.Add(infoTable);
+        document.Add(new Paragraph(" "));
+        
+        // EARNINGS SECTION
+        var earningsHeader = new Paragraph("EARNINGS")
+            .SetFont(boldFont)
+            .SetFontSize(12)
+            .SetFontColor(ColorConstants.GREEN);
+        document.Add(earningsHeader);
+    
+        Table earningsTable = new Table(new float[] { 3, 1 });
+        earningsTable.SetWidth(UnitValue.CreatePercentValue(100));
+    
+        earningsTable.AddHeaderCell(CreateHeaderCell("Description"));
+        earningsTable.AddHeaderCell(CreateHeaderCell("Amount"));
+    
+        // Basic Salary
+        earningsTable.AddCell(CreateCell("Basic Salary", false));
+        earningsTable.AddCell(CreateCell(payroll.BaseSalary.ToString("C2"), false));
+        
+        // Bonuses
+        foreach (var bonus in payroll.Bonuses)
+        {
+            earningsTable.AddCell(CreateCell(bonus.BonusType, false));
+            earningsTable.AddCell(CreateCell(bonus.Amount.ToString("C2"), false));
+        }
+    
+        // Total Earnings
+        decimal totalEarnings = payroll.BaseSalary + payroll.TotalBonus;
+        earningsTable.AddCell(CreateCell("TOTAL EARNINGS", true));
+        earningsTable.AddCell(CreateCell(totalEarnings.ToString("C2"), true));
+    
+        document.Add(earningsTable);
+        document.Add(new Paragraph(" "));
+        
+        // DEDUCTIONS SECTION
+        var deductionsHeader = new Paragraph("DEDUCTIONS")
+            .SetFont(boldFont)
+            .SetFontSize(12)
+            .SetFontColor(ColorConstants.RED);
+        document.Add(deductionsHeader);
+    
+        Table deductionsTable = new Table(new float[] { 3, 1 });
+        deductionsTable.SetWidth(UnitValue.CreatePercentValue(100));
+    
+        deductionsTable.AddHeaderCell(CreateHeaderCell("Description"));
+        deductionsTable.AddHeaderCell(CreateHeaderCell("Amount"));
+    
+        foreach (var deduction in payroll.Deductions)
+        {
+            deductionsTable.AddCell(CreateCell(deduction.DeductionType, false));
+            deductionsTable.AddCell(CreateCell("-" + deduction.Amount.ToString("C2"), false));
+        }
+
+        deductionsTable.AddCell(CreateCell("TOTAL DEDUCTIONS", true));
+        deductionsTable.AddCell(CreateCell("-" + payroll.TotalDeduction.ToString("C2"), true));
+    
+        document.Add(deductionsTable);
+        document.Add(new Paragraph(" "));
+    
+        // NET PAY SECTION
+        Table netPayTable = new Table(new float[] { 3, 1 });
+        netPayTable.SetWidth(UnitValue.CreatePercentValue(100));
+    
+        netPayTable.AddCell(CreateCell("NET PAY", true, ColorConstants.LIGHT_GRAY));
+        netPayTable.AddCell(CreateCell(payroll.NetSalary.ToString("C2"), true, ColorConstants.LIGHT_GRAY));
+    
+        document.Add(netPayTable);
+
+        // FOOTER
+        document.Add(new Paragraph(" "));
+        var footer = new Paragraph("This is a computer-generated document. No signature is required.")
+            .SetFont(normalFont)
+            .SetFontSize(8)
+            .SetTextAlignment(TextAlignment.CENTER)
+            .SetFontColor(ColorConstants.GRAY);
+        document.Add(footer);
+    }
+    
+    Console.Clear();
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.WriteLine($"Payslip exported to: {payslipsPath}");
+    Console.ResetColor();
+
+    // Log activity
+    ActivityLog activityLog = new ActivityLog()
+    {
+        UserId = currentUser.Id,
+        Action = "Exported Payslip PDF",
+        Description = $"{currentUser.Email} exported payslip for {payroll.Employee.FirstName} {payroll.Employee.LastName}"
+    };
+    _activityLogsService.AddActivityLog(activityLog);
+    _logging.LogActivity(activityLog, currentUser.Email);
+}
 
     public void ExportTimesheetToPDF(
         EmployeeProfile employeeProfile,

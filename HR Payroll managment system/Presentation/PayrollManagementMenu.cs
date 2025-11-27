@@ -1,3 +1,4 @@
+using HR_Payroll_managment_system.Helpers;
 using HR_Payroll_managment_system.Models;
 using HR_Payroll_managment_system.Presentation.Interfaces;
 using HR_Payroll_managment_system.Services;
@@ -9,12 +10,18 @@ public class PayrollManagementMenu : IPayrollManagementMenu
     EmployeeService _employeeService;
     BonusService _bonusService;
     DeductionService _deductionService;
+    PayrollService _payrollService;
+    UserService _userService;
+    
+    PDFHelper  _pdfHelper = new PDFHelper();
 
-    public PayrollManagementMenu(EmployeeService employeeService,  BonusService bonusService, DeductionService deductionService)
+    public PayrollManagementMenu(EmployeeService employeeService,  BonusService bonusService, DeductionService deductionService,  PayrollService payrollService, UserService userService)
     {
         _employeeService = employeeService;
         _bonusService = bonusService;
         _deductionService = deductionService;
+        _payrollService = payrollService;
+        _userService = userService;
     }
 
     // Menu Fucntions
@@ -39,7 +46,7 @@ public class PayrollManagementMenu : IPayrollManagementMenu
             switch (Console.ReadLine())
             {
                 case "1":
-                    
+                    MonthlyPayrollMenu();
                     break;
                 case "3":
                     BonusManagementMenu();
@@ -66,7 +73,57 @@ public class PayrollManagementMenu : IPayrollManagementMenu
 
     public void MonthlyPayrollMenu()
     {
-        
+        Console.Clear();
+        Console.WriteLine("=== Process Monthly Payroll ===");
+        Console.Write("Enter year (YYYY): ");
+        string chosenYear = Console.ReadLine();
+        Console.Write("Enter month (1-12): ");
+        string chosenMonth = Console.ReadLine();
+
+        if (!int.TryParse(chosenYear, out var year) ||
+            !int.TryParse(chosenMonth, out var month) ||
+            year < 2000 || month > 12 || month < 1)
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Invalid Input!");
+            Console.ResetColor();
+            return;
+        }
+
+        var result = _payrollService.ProcessMonthlyPayroll(year, month);
+
+        if (result.Success)
+        {
+            Console.Clear();
+            Console.WriteLine("=== Process Monthly Payroll ===");
+            Console.WriteLine($"Processed {result.ProcessedCount} Employees");
+            Console.WriteLine($"Total Net Pay: {result.TotalNetPay:N0}");
+
+            Console.WriteLine();
+            Console.WriteLine("Generate PDF payslips? (y/n):");
+
+            if (Console.ReadLine().ToLower() == "y")
+            {
+                foreach (var payroll in result.Payrolls)
+                {
+                    _pdfHelper.ExportToPDFMonthly(payroll, _userService.CurrentUser);
+                }
+                Console.Clear();
+
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Successfully Exported Payslips To PDFs");
+                Console.ResetColor();
+            }
+        }
+        else
+        { 
+                Console.Clear();
+                
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(result.Message);
+                Console.ResetColor();
+        }
     }
 
     public void BonusManagementMenu()

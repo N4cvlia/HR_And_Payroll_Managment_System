@@ -21,6 +21,11 @@ public class PayrollService : IPayrollService
         _userService = userService;
     }
 
+
+    public void AddPayroll(Payroll payroll)
+    {
+        _payrollRepository.Add(payroll);
+    }
     public void AddRange(List<Payroll> payrolls)
     {
         _payrollRepository.AddRange(payrolls);
@@ -28,6 +33,11 @@ public class PayrollService : IPayrollService
     public List<Payroll> GetPayrolls()
     {
         return _payrollRepository.GetAll();
+    }
+
+    public List<Payroll> GetPayrollsWithDetails()
+    {
+        return _payrollRepository.GetAllWithDetails();
     }
 
     public Payroll GetLatestPayroll()
@@ -92,6 +102,36 @@ public class PayrollService : IPayrollService
         catch (Exception ex)
         {
             return new PayrollProcessResult
+            {
+                Success = false,
+                Message = ex.Message
+            };
+        }
+    }
+    
+    public PayrollProcessResultSingle ProcessMonthlyPayrollForSingle(int year, int month, EmployeeProfile employee)
+    {
+        try
+        {
+            var startDate = new DateTime(year, month, 1);
+            var endDate = startDate.AddMonths(1).AddDays(-1);
+            
+            var payroll = CalculateEmployeePayroll(employee, startDate, endDate);
+
+            if (payroll != null)
+            {
+                AddPayroll(payroll);
+            }
+            
+            return new PayrollProcessResultSingle()
+            {
+                Success = true,
+                payroll = payroll
+            };
+        }
+        catch (Exception ex)
+        {
+            return new PayrollProcessResultSingle()
             {
                 Success = false,
                 Message = ex.Message

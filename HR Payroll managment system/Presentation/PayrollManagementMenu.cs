@@ -48,6 +48,9 @@ public class PayrollManagementMenu : IPayrollManagementMenu
                 case "1":
                     MonthlyPayrollMenu();
                     break;
+                case "2":
+                    GeneratePayslipsMenu();
+                    break;
                 case "3":
                     BonusManagementMenu();
                     break;
@@ -152,7 +155,7 @@ public class PayrollManagementMenu : IPayrollManagementMenu
             return;
         }
         
-        var employee = _employeeService.GetEmployeeById(employeeId);
+        var employee = _employeeService.GetEmployeeByIdWithFullDetails(employeeId);
 
         if (employee == null)
         {
@@ -164,6 +167,8 @@ public class PayrollManagementMenu : IPayrollManagementMenu
         }
         else
         {
+            Console.Clear();
+            Console.WriteLine("=== Generate Payslips ===");
             Console.Write("Enter year (YYYY): ");
             string chosenYear = Console.ReadLine();
             Console.Write("Enter month (1-12): ");
@@ -180,7 +185,25 @@ public class PayrollManagementMenu : IPayrollManagementMenu
                 return;
             }
             
-            
+            var result = _payrollService.ProcessMonthlyPayrollForSingle(year,month,employee);
+
+            if (result.Success)
+            {
+                _pdfHelper.ExportToPDFMonthly(result.payroll, _userService.CurrentUser, employee);
+                Console.Clear();
+
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Successfully Exported Payslips To PDF");
+                Console.ResetColor();
+            }
+            else
+            {
+                Console.Clear();
+                
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(result.Message);
+                Console.ResetColor();
+            }
         }
     }
 
@@ -424,16 +447,79 @@ public class PayrollManagementMenu : IPayrollManagementMenu
             Console.WriteLine("=== Payroll History ===");
             Console.WriteLine("1. View All Payroll Runs");
             Console.WriteLine("2. Search by Date Range");
-            Console.WriteLine("3. Export Payroll Report");
-            Console.WriteLine("4. Back To HR Menu");
+            Console.WriteLine("3. Back To HR Menu");
             Console.WriteLine("Choose An Option:");
 
             switch (Console.ReadLine())
             {
                 case "1":
+                    var payrolls = _payrollService.GetPayrollsWithDetails();
+                    Console.Clear();
+
+                    Console.WriteLine("=== Payroll History ===");
+                    Console.WriteLine(
+                        "───────────────────────────────────────────────────────────────────────────────");
+                    Console.WriteLine("ID  EMPLOYEE              PERIOD       GROSS     NET       STATUS    PROCESSED DATE");
+                    Console.WriteLine(
+                        "───────────────────────────────────────────────────────────────────────────────");
+
+                    if (!payrolls.Any())
+                    {
+                        Console.WriteLine("No payroll runs found.");
+                        Console.WriteLine(
+                            "───────────────────────────────────────────────────────────────────────────────");
+                        Console.WriteLine("Press any key to exit...");
+                        Console.ReadKey();
+                        Console.Clear();
+                        return;
+                    }
+
+                    // Find the longest employee name for proper spacing
+                    int maxNameLength = payrolls
+                        .Where(p => p.Employee != null)
+                        .Max(p => (p.Employee.FirstName + " " + p.Employee.LastName).Length);
+                    var nameColumnWidth = Math.Max(maxNameLength, 8) + 2;
+
+                    foreach (var payroll in payrolls.OrderByDescending(p => p.CreatedAt))
+                    {
+                        var employeeName = "Unknown";
+                        if (payroll.Employee != null)
+                            employeeName = $"{payroll.Employee.FirstName} {payroll.Employee.LastName}";
+                        else
+                            employeeName = $"ID:{payroll.EmployeeId}";
+
+                        var status = payroll.IsProcessed ? "PAID" : "PENDING";
+                        var statusColor = payroll.IsProcessed ? "✅" : "⏳";
+
+                        Console.WriteLine(
+                            $"{payroll.Id,-3} {employeeName.PadRight(nameColumnWidth)} {payroll.PayPeriodStartDate:MM/yyyy}  {payroll.BaseSalary + payroll.TotalBonus,7:N0}$ {payroll.NetSalary,7:N0}$        {status,-7} {payroll.CreatedAt:MM/dd/yyyy}");
+                    }
+
+                    Console.WriteLine(
+                        "───────────────────────────────────────────────────────────────────────────────");
+
+                    // Summary
+                    var totalGross = payrolls.Sum(p => p.BaseSalary + p.TotalBonus);
+                    var totalNet = payrolls.Sum(p => p.NetSalary);
+                    var paidCount = payrolls.Count(p => p.IsProcessed);
+                    var pendingCount = payrolls.Count(p => !p.IsProcessed);
+
+                    Console.WriteLine(
+                        $"TOTAL: {payrolls.Count} payroll runs | Paid: {paidCount} | Pending: {pendingCount}");
+                    Console.WriteLine($"TOTAL GROSS: ${totalGross:N0} | TOTAL NET: ${totalNet:N0}");
+                    Console.WriteLine(
+                        "───────────────────────────────────────────────────────────────────────────────");
+                    Console.WriteLine("Press any key to exit...");
+                    Console.ReadKey();
+                    Console.Clear();
+                    break;
+                case "2":
+                    Console.Clear();
+
+                    Console.WriteLine("=== Payroll History ===");
                     
                     break;
-                case "4":
+                case "3":
                     Console.Clear();
                     isRunning = false;
                     break;

@@ -24,6 +24,18 @@ public class EmployeeRepository : IRepository<EmployeeProfile>
             .FirstOrDefault(u => u.Id == id);
     }
 
+    public EmployeeProfile GetByIdWithFullDetails(int id)
+    {
+        return _db.Employees
+            .Include(e => e.Department)
+            .Include(e => e.JobPosition)
+            .Include(e => e.Payrolls)
+            .ThenInclude(p => p.Bonuses)
+            .Include(e => e.Payrolls)
+            .ThenInclude(p => p.Deductions)
+            .FirstOrDefault(e => e.Id == id);
+    }
+
     public EmployeeProfile GetByIdWithPayrolls(int id)
     {
         return _db.Employees

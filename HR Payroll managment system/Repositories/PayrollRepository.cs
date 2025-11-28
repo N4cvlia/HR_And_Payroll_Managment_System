@@ -1,6 +1,7 @@
 using HR_Payroll_managment_system.Data;
 using HR_Payroll_managment_system.Models;
 using HR_Payroll_managment_system.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace HR_Payroll_managment_system.Repositories;
 
@@ -16,6 +17,11 @@ public class PayrollRepository : IRepository<Payroll>
     public List<Payroll> GetAll()
     {
         return _db.Payrolls.ToList();
+    }
+
+    public List<Payroll> GetAllWithDetails()
+    {
+        return _db.Payrolls.Include(p => p.Employee).ToList();
     }
 
     public Payroll Add(Payroll payroll)

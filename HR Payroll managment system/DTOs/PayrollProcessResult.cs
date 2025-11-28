@@ -11,4 +11,5 @@ public class PayrollProcessResult
     public decimal TotalNetPay { get; set; }
     public string PayPeriod { get; set; }
     public List<Payroll> Payrolls { get; set; }
+    public List<EmployeeProfile> employees { get; set; }
 }

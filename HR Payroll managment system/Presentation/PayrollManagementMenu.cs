@@ -107,7 +107,8 @@ public class PayrollManagementMenu : IPayrollManagementMenu
             {
                 foreach (var payroll in result.Payrolls)
                 {
-                    _pdfHelper.ExportToPDFMonthly(payroll, _userService.CurrentUser);
+                    var employee = result.employees.FirstOrDefault(e => e.Id == payroll.EmployeeId);
+                    _pdfHelper.ExportToPDFMonthly(payroll, _userService.CurrentUser, employee);
                 }
                 Console.Clear();
 
@@ -123,6 +124,63 @@ public class PayrollManagementMenu : IPayrollManagementMenu
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(result.Message);
                 Console.ResetColor();
+        }
+    }
+
+    public void GeneratePayslipsMenu()
+    {
+        Console.Clear();
+        var allEmployees = _employeeService.GetAllEmployeesWithDetails();
+        Console.WriteLine("=== Generate Payslips ===");
+        Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
+        Console.WriteLine("ID  NAME                       DEPT          POSITION           EMAIL");
+        Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
+    
+        foreach (var emp in allEmployees)
+        {
+            Console.WriteLine($"{emp.Id,-3} {emp.FirstName + " " + emp.LastName,-17}     {emp.DepartmentName,-9}    {emp.JobPositionName,-17} {emp.Email,-18}");
+        }
+    
+        Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
+        Console.WriteLine("Enter an employee id:");
+        if (!int.TryParse(Console.ReadLine(), out int employeeId))
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Invalid Input!");
+            Console.ResetColor();
+            return;
+        }
+        
+        var employee = _employeeService.GetEmployeeById(employeeId);
+
+        if (employee == null)
+        {
+            Console.Clear();
+            
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Employee not found!");
+            Console.ResetColor();
+        }
+        else
+        {
+            Console.Write("Enter year (YYYY): ");
+            string chosenYear = Console.ReadLine();
+            Console.Write("Enter month (1-12): ");
+            string chosenMonth = Console.ReadLine();
+
+            if (!int.TryParse(chosenYear, out var year) ||
+                !int.TryParse(chosenMonth, out var month) ||
+                year < 2000 || month > 12 || month < 1)
+            {
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Invalid Input!");
+                Console.ResetColor();
+                return;
+            }
+            
+            
         }
     }
 

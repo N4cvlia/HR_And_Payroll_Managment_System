@@ -16,6 +16,7 @@ public class PDFHelper
     private string _currentDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
     
     ActivityLogsService  _activityLogsService = new ActivityLogsService();
+    
     Logging _logging = new Logging();
 
     public void ExportToPDF(Payroll payroll, User currentUser)
@@ -178,16 +179,13 @@ public class PDFHelper
         _logging.LogActivity(activityLog, currentUser.Email);
     }
     
-    public void ExportToPDFMonthly(Payroll payroll, User currentUser)
+    public void ExportToPDFMonthly(Payroll payroll, User currentUser, EmployeeProfile employee)
 {
     string payslipsFolder = Path.Combine(_currentDirectory,"ExportFiles", "Payslips");
     
-    // Create directory if it doesn't exist
-    if (!Directory.Exists(payslipsFolder))
-        Directory.CreateDirectory(payslipsFolder);
-        
+    
     string payslipsPath = Path.Combine(payslipsFolder, 
-        $"Payslip_{payroll.PaymentDate:yyyyMMdd}_{payroll.Employee.FirstName}_{payroll.Employee.LastName}.pdf");
+        $"Payslip_{payroll.PaymentDate:yyyyMMdd}_{employee.FirstName}_{employee.LastName}.pdf");
     
     using (var writer = new PdfWriter(payslipsPath))
     using (var pdf = new PdfDocument(writer))
@@ -221,16 +219,16 @@ public class PDFHelper
         Table infoTable = new Table(columnWidths);
     
         infoTable.AddCell(CreateCell("Employee:", true));
-        infoTable.AddCell(CreateCell($"{payroll.Employee.FirstName} {payroll.Employee.LastName}", false));
+        infoTable.AddCell(CreateCell($"{employee.FirstName} {employee.LastName}", false));
     
         infoTable.AddCell(CreateCell("Employee ID:", true));
         infoTable.AddCell(CreateCell(payroll.EmployeeId.ToString(), false));
     
         infoTable.AddCell(CreateCell("Department:", true));
-        infoTable.AddCell(CreateCell(payroll.Employee.Department.DepartmentName, false));
+        infoTable.AddCell(CreateCell(employee.Department.DepartmentName, false));
     
         infoTable.AddCell(CreateCell("Position:", true));
-        infoTable.AddCell(CreateCell(payroll.Employee.JobPosition.PositionTitle, false));
+        infoTable.AddCell(CreateCell(employee.JobPosition.PositionTitle, false));
         
         infoTable.AddCell(CreateCell("Pay Period:", true));
         infoTable.AddCell(CreateCell($"{payroll.PayPeriodStartDate:MMM dd} - {payroll.PayPeriodEndDate:MMM dd, yyyy}", false));
@@ -330,7 +328,7 @@ public class PDFHelper
     {
         UserId = currentUser.Id,
         Action = "Exported Payslip PDF",
-        Description = $"{currentUser.Email} exported payslip for {payroll.Employee.FirstName} {payroll.Employee.LastName}"
+        Description = $"{currentUser.Email} exported payslip for {employee.FirstName} {employee.LastName}"
     };
     _activityLogsService.AddActivityLog(activityLog);
     _logging.LogActivity(activityLog, currentUser.Email);

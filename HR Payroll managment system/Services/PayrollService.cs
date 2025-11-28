@@ -75,6 +75,8 @@ public class PayrollService : IPayrollService
 
             // Save all payrolls to database
             _payrollRepository.AddRange(payrolls);
+            
+            var filteredEmployees = employees.Where(e => e.Payrolls.Any()).ToList();
 
             return new PayrollProcessResult()
             {
@@ -83,7 +85,8 @@ public class PayrollService : IPayrollService
                 TotalGrossPay = totalCompanyGross,
                 TotalNetPay = totalCompanyNet,
                 PayPeriod = $"${month}/{year}",
-                Payrolls = payrolls
+                Payrolls = payrolls,
+                employees = filteredEmployees
             };
         }
         catch (Exception ex)

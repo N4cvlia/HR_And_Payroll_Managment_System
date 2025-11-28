@@ -407,7 +407,7 @@ public class EmployeeMenu : IEmployeeMenu
                     break;
                 case "3":
                     var currentUser2 = _userService.CurrentUser;
-                    var payslips2 = _payrollService.GetPayrolls();
+                    var payslips2 = _payrollService.GetPayrolls().Where(p => p.EmployeeId == currentUser2.EmployeeProfile.Id);
                     
                     Console.Clear();
                     Console.WriteLine("=== My Payslips ===");

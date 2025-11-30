@@ -30,6 +30,11 @@ public class PayrollService : IPayrollService
     {
         _payrollRepository.AddRange(payrolls);
     }
+
+    public List<Payroll> GetByDate(int year, int month)
+    {
+        return _payrollRepository.GetAllWithDetails().Where(p => p.PaymentDate.Year == year && p.PaymentDate.Month == month).ToList();
+    }
     public List<Payroll> GetPayrolls()
     {
         return _payrollRepository.GetAll();

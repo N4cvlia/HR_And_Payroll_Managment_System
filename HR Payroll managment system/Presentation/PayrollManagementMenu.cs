@@ -446,7 +446,7 @@ public class PayrollManagementMenu : IPayrollManagementMenu
         {
             Console.WriteLine("=== Payroll History ===");
             Console.WriteLine("1. View All Payroll Runs");
-            Console.WriteLine("2. Search by Date Range");
+            Console.WriteLine("2. Search by Date");
             Console.WriteLine("3. Back To HR Menu");
             Console.WriteLine("Choose An Option:");
 
@@ -471,7 +471,7 @@ public class PayrollManagementMenu : IPayrollManagementMenu
                         Console.WriteLine("Press any key to exit...");
                         Console.ReadKey();
                         Console.Clear();
-                        return;
+                        break;
                     }
 
                     // Find the longest employee name for proper spacing
@@ -517,7 +517,81 @@ public class PayrollManagementMenu : IPayrollManagementMenu
                     Console.Clear();
 
                     Console.WriteLine("=== Payroll History ===");
-                    
+                    Console.Write("Enter year (YYYY): ");
+                    string chosenYear = Console.ReadLine();
+                    Console.Write("Enter month (1-12): ");
+                    string chosenMonth = Console.ReadLine();
+
+                    if (!int.TryParse(chosenYear, out var year) ||
+                        !int.TryParse(chosenMonth, out var month) ||
+                        year < 2000 || month > 12 || month < 1)
+                    {
+                        Console.Clear();
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("Invalid Input!");
+                        Console.ResetColor();
+                        break;
+                    }
+
+                    var payrolls2 = _payrollService.GetByDate(year, month);
+
+                    Console.Clear();
+                    Console.WriteLine("=== Payroll History ===");
+                    Console.WriteLine(
+                        "───────────────────────────────────────────────────────────────────────────────");
+                    Console.WriteLine("ID  EMPLOYEE              PERIOD       GROSS     NET       STATUS    PROCESSED DATE");
+                    Console.WriteLine(
+                        "───────────────────────────────────────────────────────────────────────────────");
+
+                    if (!payrolls2.Any())
+                    {
+                        Console.WriteLine("No payroll runs found.");
+                        Console.WriteLine(
+                            "───────────────────────────────────────────────────────────────────────────────");
+                        Console.WriteLine("Press any key to exit...");
+                        Console.ReadKey();
+                        Console.Clear();
+                        break;
+                    }
+
+                    // Find the longest employee name for proper spacing
+                    int maxNameLength2 = payrolls2
+                        .Where(p => p.Employee != null)
+                        .Max(p => (p.Employee.FirstName + " " + p.Employee.LastName).Length);
+                    var nameColumnWidth2 = Math.Max(maxNameLength2, 8) + 2;
+
+                    foreach (var payroll in payrolls2.OrderByDescending(p => p.CreatedAt))
+                    {
+                        var employeeName = "Unknown";
+                        if (payroll.Employee != null)
+                            employeeName = $"{payroll.Employee.FirstName} {payroll.Employee.LastName}";
+                        else
+                            employeeName = $"ID:{payroll.EmployeeId}";
+
+                        var status = payroll.IsProcessed ? "PAID" : "PENDING";
+                        var statusColor = payroll.IsProcessed ? "✅" : "⏳";
+
+                        Console.WriteLine(
+                            $"{payroll.Id,-3} {employeeName.PadRight(nameColumnWidth2)} {payroll.PayPeriodStartDate:MM/yyyy}  {payroll.BaseSalary + payroll.TotalBonus,7:N0}$ {payroll.NetSalary,7:N0}$        {status,-7} {payroll.CreatedAt:MM/dd/yyyy}");
+                    }
+
+                    Console.WriteLine(
+                        "───────────────────────────────────────────────────────────────────────────────");
+
+                    // Summary
+                    var totalGross2 = payrolls2.Sum(p => p.BaseSalary + p.TotalBonus);
+                    var totalNet2 = payrolls2.Sum(p => p.NetSalary);
+                    var paidCount2 = payrolls2.Count(p => p.IsProcessed);
+                    var pendingCount2 = payrolls2.Count(p => !p.IsProcessed);
+
+                    Console.WriteLine(
+                        $"TOTAL: {payrolls2.Count} payroll runs | Paid: {paidCount2} | Pending: {pendingCount2}");
+                    Console.WriteLine($"TOTAL GROSS: ${totalGross2:N0} | TOTAL NET: ${totalNet2:N0}");
+                    Console.WriteLine(
+                        "───────────────────────────────────────────────────────────────────────────────");
+                    Console.WriteLine("Press any key to exit...");
+                    Console.ReadKey();
+                    Console.Clear();
                     break;
                 case "3":
                     Console.Clear();

@@ -1,3 +1,4 @@
+using HR_Payroll_managment_system.DTOs;
 using HR_Payroll_managment_system.Models;
 
 namespace HR_Payroll_managment_system.Services;
@@ -11,4 +12,5 @@ public interface IAttendanceRecordService
     bool CheckInAsHr(int id);
     bool CheckOutAsHR(int id);
     void ExportTimesheetToPDF(EmployeeProfile employee, DateTime fromDate, DateTime toDate);
+    List<AttendanceReportSummaryDto> GetMonthlyReport(int year, int month);
 }

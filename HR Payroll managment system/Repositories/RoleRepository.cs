@@ -4,7 +4,7 @@ using HR_Payroll_managment_system.Repositories.Interfaces;
 
 namespace HR_Payroll_managment_system.Repositories;
 
-public class RoleRepository : IRepository<Role>
+public class RoleRepository : IRoleRepository
 {
     HRContext _db = new HRContext();
     public Role GetById(int roleId)

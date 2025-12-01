@@ -32,7 +32,6 @@ public class AttendanceRecordService : IAttendanceRecordService
         return _attendanceRecordsRepository.GetAllWithEmployeeDetails();
     }
     
-    
     public bool CheckIn()
     {
         var currentUser = _userService.CurrentUser;
@@ -93,6 +92,11 @@ public class AttendanceRecordService : IAttendanceRecordService
     }
     public bool CheckInAsHr(int id)
     {
+        if (_userService.CurrentUser.EmployeeProfile.Id == id)
+        {
+            return CheckIn();
+        }
+        
         var result = _attendanceRecordsRepository.GetAll().Where(a => a.EmployeeId == id).FirstOrDefault(a => a.WorkDate == DateTime.Today);
 
         var currentUser = _userService.CurrentUser;
@@ -126,6 +130,10 @@ public class AttendanceRecordService : IAttendanceRecordService
 
     public bool CheckOutAsHR(int id)
     {
+        if (_userService.CurrentUser.EmployeeProfile.Id == id)
+        {
+            return CheckOut();
+        }
         var result = _attendanceRecordsRepository.GetAll().Where(a => a.EmployeeId == id).FirstOrDefault(a => a.WorkDate == DateTime.Today);
 
         var currentUser = _userService.CurrentUser;

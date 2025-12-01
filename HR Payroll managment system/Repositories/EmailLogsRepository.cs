@@ -4,7 +4,7 @@ using HR_Payroll_managment_system.Repositories.Interfaces;
 
 namespace HR_Payroll_managment_system.Repositories;
 
-public class EmailLogsRepository : IRepository<EmailLog>
+public class EmailLogsRepository : IEmailLogsRepository
 {
     private HRContext _db = new HRContext();
     

@@ -23,7 +23,7 @@ public class HRContext : DbContext
 
     override protected void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlServer(@"Server=localhost,1433;Database=HRContext;User Id=sa;Password=YourStrong@Passw0rd123;TrustServerCertificate=True;");
+        optionsBuilder.UseSqlServer(@"Server=localhost,1433;Database=HRContext2;User Id=sa;Password=YourStrong@Passw0rd123;TrustServerCertificate=True;");
     }
 
     override protected void OnModelCreating(ModelBuilder modelBuilder)
@@ -34,6 +34,12 @@ public class HRContext : DbContext
                 Id = 1,
                 DepartmentName = "Unassigned",
                 Description = "Employees pending assignment"
+            },
+            new Department()
+            {
+                Id = 2,
+                DepartmentName = "HR Department",
+                Description = "Human Rescource Management Team"
             }
         );
         modelBuilder.Entity<JobPosition>().HasData(
@@ -45,7 +51,29 @@ public class HRContext : DbContext
                 DepartmentId = 1,
                 MinSalary = 0,
                 MaxSalary = 0
-            });
+            },
+            new JobPosition()
+            {
+                Id = 2,
+                PositionTitle = "HR",
+                Description = "Human Rescource Manager",
+                DepartmentId = 2,
+                MinSalary = 1500,
+                MaxSalary = 3000
+            }
+            );
+        modelBuilder.Entity<Role>().HasData(
+            new Role()
+            {
+                Id = 1,
+                RoleName = "Employee",
+            },
+            new Role()
+            {
+                Id = 2,
+                RoleName = "HR"
+            }
+            );
         
         modelBuilder.Entity<EmployeeProfile>()
             .HasOne(e => e.Department)

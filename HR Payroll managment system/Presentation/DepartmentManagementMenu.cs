@@ -97,7 +97,6 @@ public class DepartmentManagementMenu : IDepartmentManagementMenu
         Console.Clear();
     }
     
-    
     public void AddMenu()
     {
         Console.Clear();
@@ -312,7 +311,6 @@ public class DepartmentManagementMenu : IDepartmentManagementMenu
             Console.Clear();
         }
     }
-    
     
     public void SalaryReportsMenu()
     {

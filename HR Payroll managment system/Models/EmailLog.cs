@@ -9,5 +9,5 @@ public class EmailLog : Base
     public string Body { get; set; }
     public DateTime SentDate { get; set; } = DateTime.Now;
     public bool IsSent { get; set; }
-    public string ErrorMessage  { get; set; }
+    public string ErrorMessage  { get; set; } = string.Empty;
 }

@@ -4,7 +4,7 @@ using HR_Payroll_managment_system.Repositories.Interfaces;
 
 namespace HR_Payroll_managment_system.Repositories;
 
-public class ActivityLogsRepository : IRepository<ActivityLog>
+public class ActivityLogsRepository : IActivityLogsRepository
 {
     private HRContext _db = new HRContext();
     

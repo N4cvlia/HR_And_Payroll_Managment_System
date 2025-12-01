@@ -10,7 +10,6 @@ public class PayrollService : IPayrollService
 {
     PayrollRepository  _payrollRepository = new PayrollRepository();
     EmployeeRepository  _employeeRepository = new EmployeeRepository();
-    BonusRepository  _bonusRepository = new BonusRepository();
 
     private UserService _userService;
     
@@ -20,7 +19,6 @@ public class PayrollService : IPayrollService
     {
         _userService = userService;
     }
-
 
     public void AddPayroll(Payroll payroll)
     {
@@ -222,20 +220,6 @@ public class PayrollService : IPayrollService
             Amount = insurance,
             Description = "Health insurance premium"
         });
-
-        // Other fixed deductions from database
-        var otherDeductions = employee.Payrolls.SelectMany(d => d.Deductions ?? new List<Deduction>())
-            .ToList();
-
-        foreach (var deduction in otherDeductions)
-        {
-            deductions.Add(new Deduction
-            {
-                DeductionType = deduction.DeductionType,
-                Amount = deduction.Amount,
-                Description = deduction.Description
-            });
-        }
 
         return deductions;
     }

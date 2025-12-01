@@ -5,8 +5,6 @@ using HR_Payroll_managment_system.Services;
 
 // Services
 #region Services
-HRContext database =  new HRContext();
-
 AuthService authService = new AuthService();
 UserService userService = new UserService();
 DepartmentService departmentService = new DepartmentService(userService);
@@ -18,13 +16,8 @@ PayrollService payrollService = new PayrollService(userService);
 BonusService bonusService = new BonusService(userService);
 DeductionService deductionService = new DeductionService(userService);
 
-DepartmentManagementMenu departmentManagementMenu = new DepartmentManagementMenu(departmentService);
-JobPositionManagementMenu jobPositionManagementMenu = new JobPositionManagementMenu(departmentService, jobPositionService);
-EmployeeManagementMenu employeeManagementMenu = new EmployeeManagementMenu(employeeService, departmentService, jobPositionService);
-Attendance_TimeTrackingMenu attendanceTimeTrackingMenu = new Attendance_TimeTrackingMenu(employeeService, attendanceRecordService);
-LeaveRequestManagementMenu leaveRequestManagementMenu = new LeaveRequestManagementMenu(leaveRequestService);
-PayrollManagementMenu payrollManagementMenu = new PayrollManagementMenu(employeeService, bonusService, deductionService, payrollService, userService);
 EmployeeMenu employeeMenu = new EmployeeMenu(userService, employeeService, attendanceRecordService, leaveRequestService, payrollService);
+HrMenu hrMenu = new HrMenu(userService, departmentService, jobPositionService, employeeService, attendanceRecordService, leaveRequestService, bonusService, deductionService, payrollService);
 #endregion
 
 User loggedInUser = new User();
@@ -83,24 +76,37 @@ do
             Console.ResetColor();
             return;
         }
+
+
+        EmployeeProfile employeeProfile = new EmployeeProfile();
         
-        var department = departmentService.GetAllDepartments().FirstOrDefault(d => d.DepartmentName == "Unassigned");
-        var jobPosition = jobPositionService.GetAllJobPositions().FirstOrDefault(d => d.PositionTitle == "Employee");
-        
-        
-        EmployeeProfile employeeProfile = new EmployeeProfile()
+        if (userService.CurrentUser.Role.RoleName == "HR")
         {
-            UserId = userService.CurrentUser.Id,
-            FirstName = firstName,
-            LastName = lastName,
-            DepartmentId = department.Id,
-            Department = department,
-            JobPositionId = jobPosition.Id,
-            JobPosition = jobPosition,
-        };
+            var departmentHr = departmentService.GetAllDepartments().FirstOrDefault(d => d.DepartmentName == "HR Department");
+            var jobPositionHr = jobPositionService.GetAllJobPositions()
+                .FirstOrDefault(d => d.PositionTitle == "HR");
+            
+            employeeProfile.UserId = userService.CurrentUser.Id;
+            employeeProfile.FirstName = firstName;
+            employeeProfile.LastName = lastName;
+            employeeProfile.DepartmentId = departmentHr.Id;
+            employeeProfile.JobPositionId = jobPositionHr.Id;
+        }
+        else
+        {
+            var department = departmentService.GetAllDepartments().FirstOrDefault(d => d.DepartmentName == "Unassigned");
+            var jobPosition = jobPositionService.GetAllJobPositions().FirstOrDefault(d => d.PositionTitle == "Employee");
+            
+            employeeProfile.UserId = userService.CurrentUser.Id;
+            employeeProfile.FirstName = firstName;
+            employeeProfile.LastName = lastName;
+            employeeProfile.DepartmentId = department.Id;
+            employeeProfile.JobPositionId = jobPosition.Id;
+        }
         
-        userService.CurrentUser.EmployeeProfile = employeeProfile;
-        database.SaveChanges();
+        employeeService.AddEmployeeProfile(employeeProfile);
+        
+        userService.CurrentUser.EmployeeProfile = employeeService.GetByUserId(userService.CurrentUser.Id);
         
         Console.Clear();
         Console.ForegroundColor = ConsoleColor.Green;
@@ -111,71 +117,10 @@ do
     {
         if (userService.CurrentUser.Role.RoleName == "HR")
         {
-            ShowHrMenu();
+            hrMenu.MainMenu();
         }else if (userService.CurrentUser.Role.RoleName == "Employee")
         {
             employeeMenu.MainMenu();
         }
     }
 } while (isRunning);
-
-#region HR Menu
-void ShowHrMenu()
-{
-    Console.Clear();
-    bool isHrMenuRunning =  true;
-    do
-    {
-        Console.WriteLine("=== HR Admin Dashboard ===");
-        Console.WriteLine("1. Employee Management");
-        Console.WriteLine("2. Department Management");
-        Console.WriteLine("3. Job Position Management");
-        Console.WriteLine("4. Attendance & Time Tracking");
-        Console.WriteLine("5. Leave Request Management");
-        Console.WriteLine("6. Payroll Management");
-        Console.WriteLine("7. Reports & Analytics");
-        Console.WriteLine("8. System Administration");
-        Console.WriteLine("9. Back to Main Menu");
-        Console.WriteLine("Choose an Option:");
-        
-        string choice =  Console.ReadLine();
-
-        switch (choice)
-        {
-            case "1":
-                employeeManagementMenu.MainMenu();
-                break;
-            case "2":
-                departmentManagementMenu.MainMenu();
-                break;
-            case "3":
-                jobPositionManagementMenu.MainMenu();
-                break;
-            case "4":
-                attendanceTimeTrackingMenu.MainMenu();
-                break;
-            case "5":
-                leaveRequestManagementMenu.MainMenu();
-                break;
-            case "6":
-                payrollManagementMenu.MainMenu();
-                break;
-            case "9":
-                loggedInUser = new User();
-                isHrMenuRunning = false;
-                
-                Console.Clear();
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Successfully Logged Out!");
-                Console.ResetColor();
-                break;
-            default:
-                Console.Clear();
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Invalid Input!");
-                Console.ResetColor();
-                break;
-        }
-    } while (isHrMenuRunning);
-}
-#endregion

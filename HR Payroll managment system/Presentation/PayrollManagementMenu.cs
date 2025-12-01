@@ -110,7 +110,7 @@ public class PayrollManagementMenu : IPayrollManagementMenu
             {
                 foreach (var payroll in result.Payrolls)
                 {
-                    var employee = result.employees.FirstOrDefault(e => e.Id == payroll.EmployeeId);
+                    var employee = _employeeService.GetEmployeeByIdWithFullDetails(payroll.EmployeeId);
                     _pdfHelper.ExportToPDFMonthly(payroll, _userService.CurrentUser, employee);
                 }
                 Console.Clear();
@@ -228,7 +228,7 @@ public class PayrollManagementMenu : IPayrollManagementMenu
         Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
         Console.WriteLine("Choose Employee Id:");
 
-        if (int.TryParse(Console.ReadLine(), out int id))
+        if (!int.TryParse(Console.ReadLine(), out int id))
         {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Red;
@@ -281,7 +281,7 @@ public class PayrollManagementMenu : IPayrollManagementMenu
             Console.WriteLine("=== Bonus Management ===");
             Console.WriteLine("Enter Bonus Amount($):");
 
-            if (decimal.TryParse(Console.ReadLine(), out decimal amount))
+            if (!decimal.TryParse(Console.ReadLine(), out decimal amount))
             {
                 Console.Clear();
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -342,7 +342,7 @@ public class PayrollManagementMenu : IPayrollManagementMenu
         Console.WriteLine("───────────────────────────────────────────────────────────────────────────────");
         Console.WriteLine("Choose Employee Id:");
         
-        if (int.TryParse(Console.ReadLine(), out int id))
+        if (!int.TryParse(Console.ReadLine(), out int id))
         {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Red;
@@ -397,7 +397,7 @@ public class PayrollManagementMenu : IPayrollManagementMenu
             Console.WriteLine("=== Deduction Management ===");
             Console.WriteLine("Enter Deduction Amount($):");
 
-            if (decimal.TryParse(Console.ReadLine(), out decimal amount))
+            if (!decimal.TryParse(Console.ReadLine(), out decimal amount))
             {
                 Console.Clear();
                 Console.ForegroundColor = ConsoleColor.Red;

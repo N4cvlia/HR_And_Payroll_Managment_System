@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HR_Payroll_managment_system.Repositories;
 
-public class AttendanceRecordsRepository : IRepository<AttendanceRecord>
+public class AttendanceRecordsRepository : IAttendanceRecordsRepository
 {
     private HRContext _db = new HRContext();
     

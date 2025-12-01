@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HR_Payroll_managment_system.Repositories;
 
-public class LeaveRequestRepository : IRepository<LeaveRequest>
+public class LeaveRequestRepository : ILeaveRequestRepository
 {
     private HRContext _db = new HRContext();
     

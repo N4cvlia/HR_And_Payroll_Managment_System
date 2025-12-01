@@ -27,7 +27,11 @@ public class EmployeeService
     {
         return _employeeRepository.GetAll();
     }
-    
+
+    public EmployeeProfile GetByUserId(int userId)
+    {
+        return _employeeRepository.GetByUserId(userId);
+    }
     public List<EmployeeListWithDetailsDto> GetAllEmployeesWithDetails()
     {
         return  _employeeRepository.GetAllWithDetails();
@@ -56,6 +60,11 @@ public class EmployeeService
     public EmployeeProfile GetEmployeeByIdWithAttendace(int id)
     {
         return _employeeRepository.GetByIdWithAttendace(id);
+    }
+
+    public void AddEmployeeProfile(EmployeeProfile employeeProfile)
+    {
+        _employeeRepository.Add(employeeProfile);
     }
 
     public bool AssignDepartmentAndPosition(EmployeeProfile employee)

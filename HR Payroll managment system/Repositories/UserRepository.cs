@@ -5,10 +5,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HR_Payroll_managment_system.Repositories;
 
-public class UserRepository : IRepository<User>
+public class UserRepository : IUserRepository
 {
     HRContext _db = new HRContext();
-
+    
+    public void AddProfileToUser(User user, EmployeeProfile employeeProfile)
+    {
+        user.EmployeeProfile = employeeProfile;
+        _db.SaveChanges();
+    }
     public User GetUserByEmail(string email)
     {
         return _db.Users

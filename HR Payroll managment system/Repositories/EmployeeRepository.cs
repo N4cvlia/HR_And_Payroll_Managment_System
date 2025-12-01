@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HR_Payroll_managment_system.Repositories;
 
-public class EmployeeRepository : IRepository<EmployeeProfile>
+public class EmployeeRepository : IEmployeeRepository
 {
     HRContext _db = new HRContext();
     
@@ -15,6 +15,14 @@ public class EmployeeRepository : IRepository<EmployeeProfile>
         return _db.Employees.FirstOrDefault(u => u.Id == employeeId);
     }
 
+    public EmployeeProfile GetByUserId(int userId)
+    {
+        return _db.Employees
+            .Include(e => e.Department)
+            .Include(e => e.AttendanceRecords)
+            .Include(e => e.User)
+            .FirstOrDefault(e => e.UserId == userId);
+    }
     public EmployeeProfile GetByIdWithDetails(int id)
     {
         return _db.Employees

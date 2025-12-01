@@ -29,6 +29,7 @@
       <Folder Include="ExportFiles\Payslips\" />
       <Folder Include="ExportFiles\Timesheets\" />
       <Folder Include="Logs\" />
+      <Folder Include="Migrations\" />
     </ItemGroup>
 
 </Project>

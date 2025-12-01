@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HR_Payroll_managment_system.Repositories;
 
-public class DepartmentRepository : IRepository<Department>
+public class DepartmentRepository : IDepartmentRepository
 {
     HRContext _db = new HRContext();
     

@@ -4,7 +4,7 @@ using HR_Payroll_managment_system.Repositories.Interfaces;
 
 namespace HR_Payroll_managment_system.Repositories;
 
-public class DeductionRepository : IRepository<Deduction>
+public class DeductionRepository : IDeductionRepository
 {
     HRContext _db = new HRContext();
     

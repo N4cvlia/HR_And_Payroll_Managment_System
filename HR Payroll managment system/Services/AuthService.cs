@@ -41,6 +41,16 @@ public class AuthService : IAuthService
         {
             User foundUser = _userRepository.GetUserByEmail(email);
 
+            if (foundUser == null)
+            {
+                Console.Clear();
+
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Invalid Credentials");
+                Console.ResetColor();
+                return null;
+            }
+
             if (BCrypt.Net.BCrypt.Verify(password, foundUser.Password))
             {
                 Console.Clear();
@@ -108,8 +118,16 @@ public class AuthService : IAuthService
                 foreach (var item in roles) Console.WriteLine($"{item.Id}. {item.RoleName}");
 
                 Console.WriteLine("Choose an Option:");
-
-                var choice1 = int.Parse(Console.ReadLine());
+                
+                if (!int.TryParse(Console.ReadLine(), out var choice1))
+                {
+                    Console.Clear();
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Invalid Input!");
+                    Console.ResetColor();
+                    return;
+                }
+                
                 var result = roles.FirstOrDefault(r => r.Id == choice1);
 
                 if (result != null)
@@ -128,10 +146,10 @@ public class AuthService : IAuthService
                             $@"<div style='font-family: Arial, sans-serif; padding: 20px;'><h2>HR Payroll System - Verification Code</h2><p>Hello,</p><p>Your verification code is:</p><div style='font-size: 32px; font-weight: bold; color: #007cba; margin: 20px 0;'> {code}</div><p>Enter this code in the application to verify your email address.</p><p><strong>This code expires in 10 minutes.</strong></p><hr><p style='color: #666; font-size: 12px;'>If you didn't request this code, please ignore this email.</p></div>",
                         IsSent = false
                     };
-
-                    _emailSender.Send(emailLog);
+                    
                     _emailLogsRepository.Add(emailLog);
-
+                    _emailSender.Send(emailLog);
+                    
                     do
                     {
                         Console.WriteLine("[Verify Email]");
@@ -144,7 +162,7 @@ public class AuthService : IAuthService
                             {
                                 Email = user.Email,
                                 Password = BCrypt.Net.BCrypt.HashPassword(password),
-                                Role = result
+                                RoleId = result.Id
                             };
 
                             _userRepository.Add(user1);

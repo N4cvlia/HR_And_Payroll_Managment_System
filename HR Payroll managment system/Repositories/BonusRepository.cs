@@ -4,7 +4,7 @@ using HR_Payroll_managment_system.Repositories.Interfaces;
 
 namespace HR_Payroll_managment_system.Repositories;
 
-public class BonusRepository : IRepository<Bonus>
+public class BonusRepository : IBonusRepository
 {
     HRContext _db = new HRContext();
     
